@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <meta name="theme-color" content="#81C784">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Battery Calculator">
+    <link rel="manifest" href="manifest.json">
+    <title>Battery Run Time Calculator</title>
+    <style>
+        /* 全局重置样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* 字体设置 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            height: 100%;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            overscroll-behavior: auto;
+            overflow-y: auto;
+        }
+        
+        /* 安全区域处理 */
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+        
+        /* 应用容器 */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            height: 100%;
+        }
+        
+        /* 标题区 */
+        .header {
+            background-color: #81C784;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* 按键区 */
+        .button-area {
+            display: flex;
+            padding: 8px 16px;
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        /* 按键 */
+        .button {
+            flex: 1;
+            padding: 4px 8px;
+            background-color: transparent;
+            border: none;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            margin: 0 8px;
+        }
+        
+        /* 按键激活状态 */
+        .button.active {
+            color: #2196F3;
+            border-bottom: 2px solid #2196F3;
+        }
+        
+        /* 子屏幕区域 */
+        .subscreen-area {
+            flex: 1;
+            background-color: white;
+            margin: 0;
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            min-height: 0;
+            overscroll-behavior: contain;
+        }
+        
+        /* 子屏幕背景颜色 */
+        .subscreen-area.Calc {
+            background-color: #FFF8E1;
+        }
+        
+        .subscreen-area.DfX {
+            background-color: #BBDEFB;
+        }
+        
+        /* 注脚区 */
+        .footer {
+            padding: 11px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        /* 卡片容器 */
+        .card-container {
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        /* 卡片 */
+        .card {
+            border-radius: 0;
+            padding: 2px 6px;
+            margin-bottom: 8px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 95%;
+            min-height: 60px;
+        }
+        
+        /* 左对齐标签 */
+        .label-left {
+            justify-content: flex-start !important;
+            text-align: left !important;
+        }
+        
+        /* 右对齐标签 */
+        .label-right {
+            justify-content: flex-end !important;
+            text-align: right !important;
+        }
+        
+        /* 卡片内容 */
+        .card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        /* 卡片头部 */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* 卡片标题 */
+        .card-header h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1;
+        }
+        
+        /* 卡片主体 */
+        .card-body {
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 变量容器 */
+        .variable-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            width: 100%;
+            align-items: center;
+        }
+        
+        /* 变量项 */
+        .variable-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        /* T变量项 */
+        .t-item {
+            grid-column: 2;
+        }
+        
+        /* Tmin变量项 */
+        .tmin-item {
+            grid-column: 7;
+        }
+        
+        /* Tmax变量项 */
+        .tmax-item {
+            grid-column: 9;
+        }
+        
+        /* L变量项 */
+        .l-item {
+            grid-column: 2;
+        }
+        
+        /* Lmin变量项 */
+        .lmin-item {
+            grid-column: 7;
+        }
+        
+        /* Lmax变量项 */
+        .lmax-item {
+            grid-column: 9;
+        }
+        
+        /* Load卡片标题 */
+        .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* PACK卡片标题 */
+        .pack-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pack-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* N输入框 */
+        .n-input {
+            width: 20px !important;
+        }
+        
+        /* N输入框标签 */
+        .n-item .variable-label {
+            width: 20px;
+        }
+        
+        /* N输入框容器 */
+        .n-item .input-with-unit {
+            width: 20px;
+        }
+        
+        /* N变量项 */
+        .n-item {
+            grid-column: 2;
+        }
+        
+        /* C变量项 */
+        .c-item {
+            grid-column: 3;
+        }
+        
+        /* Cmin变量项 */
+        .cmin-item {
+            grid-column: 7;
+        }
+        
+        /* Cmax变量项 */
+        .cmax-item {
+            grid-column: 9;
+        }
+        
+        /* 变量标签 */
+        .variable-label {
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+            width: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 输入框带单位容器 */
+        .input-with-unit {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            width: 55px;
+        }
+        
+        /* 输入框带按钮容器 */
+        .input-with-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        /* 变量输入框 */
+        .variable-input {
+            width: 55px;
+            padding: 3px 5px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 10px;
+            text-align: center;
+            height: 22px;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* 左对齐输入框 */
+        .input-left {
+            text-align: left !important;
+        }
+        
+        /* 右对齐输入框 */
+        .input-right {
+            text-align: right !important;
+        }
+        
+        /* 变量单位 */
+        .variable-unit {
+            font-size: 10px;
+            color: #666;
+            white-space: nowrap;
+        }
+        
+        /* 卡片按钮容器 */
+        .card-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+            justify-content: space-evenly;
+            margin-left: 8px;
+        }
+        
+        /* 卡片按钮 */
+        .card-button {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            background-color: white;
+            color: #666;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        /* 卡片按钮悬停效果 */
+        .card-button:hover {
+            color: #2196F3;
+        }
+        
+        /* 卡片按钮点击效果 */
+        .card-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* 禁用的输入框 */
+        .variable-input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        
+        /* 响应式设计 - 小屏幕设备 */
+        @media (max-width: 320px) {
+            .header {
+                font-size: 12px;
+                padding: 9px;
+            }
+            
+            .button {
+                font-size: 10px;
+                padding: 4px 6px;
+            }
+            
+            .subscreen-area {
+                font-size: 16px;
+            }
+            
+            .footer {
+                font-size: 9px;
+                padding: 8.4px;
+            }
+        }
+        
+        /* 响应式设计 - 中等屏幕设备 */
+        @media (min-width: 321px) and (max-width: 375px) {
+            .header {
+                font-size: 14px;
+                padding: 10.5px;
+            }
+            
+            .button {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            
+            .subscreen-area {
+                font-size: 18px;
+            }
+            
+            .footer {
+                font-size: 10px;
+                padding: 9.8px;
+            }
+        }
+        
+        /* 响应式设计 - 大屏幕设备 */
+        @media (min-width: 376px) and (max-width: 428px) {
+            .header {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .button {
+                font-size: 14px;
+                padding: 4px 8px;
+            }
+            
+            .subscreen-area {
+                font-size: 20px;
+            }
+            
+            .footer {
+                font-size: 11px;
+                padding: 11.2px;
+            }
+        }
+        
+        /* 响应式设计 - 平板设备和普通浏览器 */
+        @media (min-width: 429px) {
+            body {
+                max-width: 428px;
+                margin: 0 auto;
+                border: 1px solid #e0e0e0;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            
+            .header {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .button {
+                font-size: 14px;
+                padding: 4px 8px;
+            }
+            
+            .subscreen-area {
+                font-size: 20px;
+            }
+            
+            .footer {
+                font-size: 11px;
+                padding: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 标题区 -->
+        <div class="header">
+            Battery Run Time Calculator
+        </div>
+        
+        <!-- 按键区 -->
+        <div class="button-area">
+            <div class="button active">Calc</div>
+            <div class="button">D<span style="font-style: italic;">f</span>X</div>
+        </div>
+        
+        <!-- 子屏幕区域 -->
+        <div class="subscreen-area Calc">
+            <div class="card-container">
+                <!-- 测试卡片：Time -->
+                <div class="card" style="background-color: #E8F5E8;">
+                        <div class="card-content">
+                            <div class="card-header">
+                                <h3>Time</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="variable-container">
+                                    <div class="variable-item t-item">
+                                        <label class="variable-label">Nom</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="T" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">Min</span>
+                                        </div>
+                                    </div>
+                                    <div class="variable-item tmin-item">
+                                        <label class="variable-label">Min</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="Tmin" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">Min</span>
+                                        </div>
+                                    </div>
+                                    <div class="variable-item tmax-item">
+                                        <label class="variable-label">Max</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="Tmax" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">Min</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-buttons">
+                            <button class="card-button plus">+</button>
+                            <button class="card-button minus">-</button>
+                        </div>
+                    </div>
+                <!-- 测试卡片：Load -->
+                <div class="card" style="background-color: #FFCDD2;">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="variable-container">
+                                    <div class="variable-item load-title">
+                                        <h3>Load</h3>
+                                    </div>
+                                    <div class="variable-item l-item">
+                                        <label class="variable-label">Nom</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="L" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">W</span>
+                                        </div>
+                                    </div>
+                                    <div class="variable-item lmin-item">
+                                        <label class="variable-label">Min</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="Lmin" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">W</span>
+                                        </div>
+                                    </div>
+                                    <div class="variable-item lmax-item">
+                                        <label class="variable-label">Max</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="Lmax" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">W</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-buttons">
+                            <button class="card-button plus">+</button>
+                            <button class="card-button minus">-</button>
+                        </div>
+                    </div>
+                <!-- 测试卡片：PACK -->
+                <div class="card" style="background-color: #BBDEFB;">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="variable-container">
+                                    <div class="variable-item pack-title">
+                                        <h3>PACK</h3>
+                                    </div>
+                                    <div class="variable-item n-item">
+                                        <label class="variable-label">Cell</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input n-input" id="N" placeholder="0" inputmode="numeric" maxlength="1">
+                                        </div>
+                                    </div>
+                                    <div class="variable-item c-item">
+                                        <label class="variable-label">Cap</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="C" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">mAh</span>
+                                        </div>
+                                    </div>
+                                    <div class="variable-item cmin-item">
+                                        <label class="variable-label">Min</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="Cmin" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">mAh</span>
+                                        </div>
+                                    </div>
+                                    <div class="variable-item cmax-item">
+                                        <label class="variable-label">Max</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="Cmax" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">mAh</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-buttons">
+                            <button class="card-button plus">+</button>
+                            <button class="card-button minus">-</button>
+                        </div>
+                    </div>
+            </div>
+        </div>
+        
+        <!-- 注脚区 -->
+        <div class="footer">
+            <span id="timestamp"></span> (c) 2026
+        </div>
+    </div>
+    
+    <script>
+        // 时间戳生成
+        function generateTimestamp() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            document.getElementById('timestamp').textContent = timestamp;
+        }
+        
+        // 调整子屏幕高度
+        function adjustSubscreenHeight() {
+            const appContainer = document.querySelector('.app-container');
+            const header = document.querySelector('.header');
+            const buttonArea = document.querySelector('.button-area');
+            const footer = document.querySelector('.footer');
+            const subscreenArea = document.querySelector('.subscreen-area');
+            
+            if (appContainer && header && buttonArea && footer && subscreenArea) {
+                const totalHeight = appContainer.offsetHeight;
+                const usedHeight = header.offsetHeight + buttonArea.offsetHeight + footer.offsetHeight;
+                const subscreenHeight = totalHeight - usedHeight;
+                subscreenArea.style.height = `${subscreenHeight}px`;
+            }
+        }
+        
+        // 按键点击事件处理
+        function setupButtonListeners() {
+            const buttons = document.querySelectorAll('.button');
+            const subscreenArea = document.querySelector('.subscreen-area');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 移除所有按键的active类
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    // 为当前点击的按键添加active类
+                    button.classList.add('active');
+                    
+                    // 移除所有子屏幕类
+                    subscreenArea.classList.remove('Calc', 'DfX');
+                    // 根据按键文本添加对应的子屏幕类
+                    let buttonText = button.textContent;
+                    // 处理 DfX 按键，确保类名正确
+                    if (buttonText.includes('D') && buttonText.includes('X')) {
+                        buttonText = 'DfX';
+                    }
+                    subscreenArea.classList.add(buttonText);
+                });
+            });
+        }
+        
+        // 卡片功能初始化
+        function initCardFunctions() {
+            // 绑定卡片按钮事件
+            const plusButtons = document.querySelectorAll('.card-button.plus');
+            const minusButtons = document.querySelectorAll('.card-button.minus');
+            
+            plusButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    console.log('Plus button clicked');
+                    // 这里可以添加添加卡片的逻辑
+                });
+            });
+            
+            minusButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    console.log('Minus button clicked');
+                    // 这里可以添加删除卡片的逻辑
+                });
+            });
+            
+            // 绑定输入框事件
+            const variableInputs = document.querySelectorAll('.variable-input');
+            variableInputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    // 验证输入值
+                    validateInput(e.target);
+                    // 这里可以添加实时计算的逻辑
+                });
+            });
+        }
+        
+        // 输入验证函数
+        function validateInput(input) {
+            let value = input.value;
+            
+            // 移除非数字和小数点的字符
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // 确保只有一个小数点
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // 限制整数部分最多4位
+            if (parts[0] && parts[0].length > 4) {
+                parts[0] = parts[0].substring(0, 4);
+                value = parts.join('.');
+            }
+            
+            // 限制小数部分最多1位
+            if (parts[1] && parts[1].length > 1) {
+                parts[1] = parts[1].substring(0, 1);
+                value = parts.join('.');
+            }
+            
+            input.value = value;
+        }
+        
+        // 页面加载初始化
+        function initApp() {
+            generateTimestamp();
+            adjustSubscreenHeight();
+            setupButtonListeners();
+            initCardFunctions();
+        }
+        
+        // 窗口大小变化监听
+        window.addEventListener('resize', adjustSubscreenHeight);
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', initApp);
+        
+        // Service Worker注册
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker 注册成功:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker 注册失败:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
