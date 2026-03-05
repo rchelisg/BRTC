@@ -92,12 +92,6 @@
             margin: 0;
             border-radius: 0;
             box-shadow: none;
-<<<<<<< HEAD
-=======
-            display: flex;
-            align-items: center;
-            justify-content: center;
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
             font-size: 18px;
             font-weight: 500;
             color: #333;
@@ -105,7 +99,6 @@
             -webkit-overflow-scrolling: touch;
             min-height: 0;
             overscroll-behavior: contain;
-<<<<<<< HEAD
             position: relative;
         }
         
@@ -127,16 +120,10 @@
         }
         
         /* 当subscreen-area有对应类时显示相应的子屏幕内容并设置背景颜色 */
-=======
-        }
-        
-        /* 子屏幕背景颜色 */
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
         .subscreen-area.Calc {
             background-color: #FFF8E1;
         }
         
-<<<<<<< HEAD
         .subscreen-area.Calc .subscreen-content.Calc {
             display: block;
         }
@@ -145,13 +132,10 @@
             display: none;
         }
         
-=======
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
         .subscreen-area.DfX {
             background-color: #BBDEFB;
         }
         
-<<<<<<< HEAD
         .subscreen-area.DfX .subscreen-content.Calc {
             display: none;
         }
@@ -160,8 +144,6 @@
             display: block;
         }
         
-=======
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
         /* 注脚区 */
         .footer {
             padding: 11px;
@@ -182,25 +164,16 @@
         .card {
             border-radius: 0;
             padding: 2px 6px;
-<<<<<<< HEAD
             margin: 8px auto;
-=======
-            margin-bottom: 8px;
-            margin-left: auto;
-            margin-right: auto;
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: row;
             align-items: center;
             width: 95%;
-<<<<<<< HEAD
         }
         
         /* 非卡片组的卡片保持最小高度 */
         .card-container > .card:not(.card-group .card) {
-=======
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
             min-height: 60px;
         }
         
@@ -368,7 +341,6 @@
             grid-column: 9;
         }
         
-<<<<<<< HEAD
         /* 变量显示 */
         .variable-display {
             font-size: 10px;
@@ -533,8 +505,6 @@
             gap: 0;
         }
         
-=======
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
         /* 变量标签 */
         .variable-label {
             font-size: 10px;
@@ -745,93 +715,12 @@
         </div>
         
         <!-- 子屏幕区域 -->
-<<<<<<< HEAD
         <div class="subscreen-area">
             <!-- Calc子屏幕内容 -->
             <div class="subscreen-content Calc">
                 <div class="card-container">
                     <!-- 测试卡片：PACK -->
                     <div class="card" style="background-color: #BBDEFB;">
-=======
-        <div class="subscreen-area Calc">
-            <div class="card-container">
-                <!-- 测试卡片：Time -->
-                <div class="card" style="background-color: #E8F5E8;">
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h3>Time</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="variable-container">
-                                    <div class="variable-item t-item">
-                                        <label class="variable-label">Nom</label>
-                                        <div class="input-with-unit">
-                                            <input type="text" class="variable-input" id="T" placeholder="0.0" inputmode="decimal">
-                                            <span class="variable-unit">Min</span>
-                                        </div>
-                                    </div>
-                                    <div class="variable-item tmin-item">
-                                        <label class="variable-label">Min</label>
-                                        <div class="input-with-unit">
-                                            <input type="text" class="variable-input" id="Tmin" placeholder="0.0" inputmode="decimal">
-                                            <span class="variable-unit">Min</span>
-                                        </div>
-                                    </div>
-                                    <div class="variable-item tmax-item">
-                                        <label class="variable-label">Max</label>
-                                        <div class="input-with-unit">
-                                            <input type="text" class="variable-input" id="Tmax" placeholder="0.0" inputmode="decimal">
-                                            <span class="variable-unit">Min</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-buttons">
-                            <button class="card-button plus">+</button>
-                            <button class="card-button minus">-</button>
-                        </div>
-                    </div>
-                <!-- 测试卡片：Load -->
-                <div class="card" style="background-color: #FFCDD2;">
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div class="variable-container">
-                                    <div class="variable-item load-title">
-                                        <h3>Load</h3>
-                                    </div>
-                                    <div class="variable-item l-item">
-                                        <label class="variable-label">Nom</label>
-                                        <div class="input-with-unit">
-                                            <input type="text" class="variable-input" id="L" placeholder="0.0" inputmode="decimal">
-                                            <span class="variable-unit">W</span>
-                                        </div>
-                                    </div>
-                                    <div class="variable-item lmin-item">
-                                        <label class="variable-label">Min</label>
-                                        <div class="input-with-unit">
-                                            <input type="text" class="variable-input" id="Lmin" placeholder="0.0" inputmode="decimal">
-                                            <span class="variable-unit">W</span>
-                                        </div>
-                                    </div>
-                                    <div class="variable-item lmax-item">
-                                        <label class="variable-label">Max</label>
-                                        <div class="input-with-unit">
-                                            <input type="text" class="variable-input" id="Lmax" placeholder="0.0" inputmode="decimal">
-                                            <span class="variable-unit">W</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-buttons">
-                            <button class="card-button plus">+</button>
-                            <button class="card-button minus">-</button>
-                        </div>
-                    </div>
-                <!-- 测试卡片：PACK -->
-                <div class="card" style="background-color: #BBDEFB;">
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
                         <div class="card-content">
                             <div class="card-body">
                                 <div class="variable-container">
@@ -868,7 +757,6 @@
                                 </div>
                             </div>
                         </div>
-<<<<<<< HEAD
                     </div>
                     
                     <!-- 卡片组LOAD -->
@@ -914,13 +802,6 @@
             <!-- DfX子屏幕内容 -->
             <div class="subscreen-content DfX">
                 <!-- DfX子屏幕内容将在这里添加 -->
-=======
-                        <div class="card-buttons">
-                            <button class="card-button plus">+</button>
-                            <button class="card-button minus">-</button>
-                        </div>
-                    </div>
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
             </div>
         </div>
         
@@ -987,27 +868,6 @@
         
         // 卡片功能初始化
         function initCardFunctions() {
-<<<<<<< HEAD
-=======
-            // 绑定卡片按钮事件
-            const plusButtons = document.querySelectorAll('.card-button.plus');
-            const minusButtons = document.querySelectorAll('.card-button.minus');
-            
-            plusButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    console.log('Plus button clicked');
-                    // 这里可以添加添加卡片的逻辑
-                });
-            });
-            
-            minusButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    console.log('Minus button clicked');
-                    // 这里可以添加删除卡片的逻辑
-                });
-            });
-            
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
             // 绑定输入框事件
             const variableInputs = document.querySelectorAll('.variable-input');
             variableInputs.forEach(input => {
@@ -1032,7 +892,6 @@
                 value = parts[0] + '.' + parts.slice(1).join('');
             }
             
-<<<<<<< HEAD
             // 限制总长度最多4位（包括小数点）
             if (value.length > 4) {
                 value = value.substring(0, 4);
@@ -1041,12 +900,6 @@
                 if (trimmedParts.length > 2) {
                     value = trimmedParts[0] + '.' + trimmedParts.slice(1).join('');
                 }
-=======
-            // 限制整数部分最多4位
-            if (parts[0] && parts[0].length > 4) {
-                parts[0] = parts[0].substring(0, 4);
-                value = parts.join('.');
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
             }
             
             // 限制小数部分最多1位
@@ -1069,7 +922,6 @@
         // 窗口大小变化监听
         window.addEventListener('resize', adjustSubscreenHeight);
         
-<<<<<<< HEAD
         // 卡片组LOAD逻辑
         const cardGroupLOAD = document.getElementById('card-group-LOAD');
         let cardCount = 0;
@@ -1293,23 +1145,6 @@
                     });
             }
         });
-=======
-        // 页面加载完成后初始化
-        window.addEventListener('load', initApp);
-        
-        // Service Worker注册
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker 注册成功:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker 注册失败:', error);
-                    });
-            });
-        }
->>>>>>> b92fa63bc7d0953fa460bf2c2bab92377727713d
     </script>
 </body>
 </html>
