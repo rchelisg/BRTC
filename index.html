@@ -1009,78 +1009,98 @@
                 input.addEventListener('blur', calculateSummary);
             });
             
-            // 绑定按钮事件
-            const minusBtn = card.querySelector('.minus');
-            const plusBtn = card.querySelector('.plus');
-            
-            minusBtn.addEventListener('click', () => {
-                removeCard(index);
-            });
-            
-            plusBtn.addEventListener('click', () => {
-                addCard(index);
-            });
-            
             return card;
+        }
+        
+        // 重新索引所有卡片
+        function reindexCards() {
+            const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
+            cards.forEach((card, i) => {
+                // 更新索引
+                card.dataset.index = i;
+                
+                // 更新标题
+                const title = card.querySelector('.load-title h3');
+                if (title) {
+                    title.textContent = `L${i}`;
+                }
+                
+                // 更新输入框ID
+                const lInput = card.querySelector('.load-l-item input');
+                if (lInput) {
+                    lInput.id = `L${i}`;
+                }
+                const lminInput = card.querySelector('.load-lmin-item input');
+                if (lminInput) {
+                    lminInput.id = `Lmin${i}`;
+                }
+                const lmaxInput = card.querySelector('.load-lmax-item input');
+                if (lmaxInput) {
+                    lmaxInput.id = `Lmax${i}`;
+                }
+                
+                // 移除旧的事件监听器
+                const minusBtn = card.querySelector('.minus');
+                const plusBtn = card.querySelector('.plus');
+                
+                // 移除所有事件监听器
+                const newMinusBtn = minusBtn.cloneNode(true);
+                const newPlusBtn = plusBtn.cloneNode(true);
+                minusBtn.parentNode.replaceChild(newMinusBtn, minusBtn);
+                plusBtn.parentNode.replaceChild(newPlusBtn, plusBtn);
+                
+                // 绑定新的事件监听器
+                newMinusBtn.addEventListener('click', () => {
+                    removeCard(i);
+                });
+                
+                newPlusBtn.addEventListener('click', () => {
+                    addCard(i);
+                });
+            });
+            
+            // 更新按钮显示
+            updateButtons();
         }
         
         // 添加卡片
         function addCard(index) {
             if (cardCount < maxCards) {
+                // 创建新卡片
                 const newCard = createCard(index + 1);
+                
+                // 找到当前卡片并在其后插入新卡片
                 const currentCard = cardGroupLOAD.querySelector(`.card[data-index="${index}"]`);
                 if (currentCard) {
                     currentCard.after(newCard);
                 } else {
                     cardGroupLOAD.appendChild(newCard);
                 }
+                
+                // 增加卡片计数
                 cardCount++;
-                updateButtons();
+                
+                // 重新索引所有卡片
+                reindexCards();
             }
         }
         
         // 删除卡片
         function removeCard(index) {
             if (cardCount > 1) {
+                // 找到要删除的卡片
                 const card = cardGroupLOAD.querySelector(`.card[data-index="${index}"]`);
                 if (card) {
+                    // 删除卡片
                     card.remove();
+                    
+                    // 减少卡片计数
                     cardCount--;
-                    // 重新索引
-                    const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
-                    cards.forEach((card, i) => {
-                        card.dataset.index = i;
-                        // 更新标题
-                        const title = card.querySelector('.load-title h3');
-                        if (title) {
-                            title.textContent = `L${i}`;
-                        }
-                        // 更新输入框ID
-                        const lInput = card.querySelector('.load-l-item input');
-                        if (lInput) {
-                            lInput.id = `L${i}`;
-                        }
-                        const lminInput = card.querySelector('.load-lmin-item input');
-                        if (lminInput) {
-                            lminInput.id = `Lmin${i}`;
-                        }
-                        const lmaxInput = card.querySelector('.load-lmax-item input');
-                        if (lmaxInput) {
-                            lmaxInput.id = `Lmax${i}`;
-                        }
-                        // 更新按钮事件
-                        const minusBtn = card.querySelector('.minus');
-                        const plusBtn = card.querySelector('.plus');
-                        
-                        minusBtn.onclick = () => {
-                            removeCard(i);
-                        };
-                        
-                        plusBtn.onclick = () => {
-                            addCard(i);
-                        };
-                    });
-                    updateButtons();
+                    
+                    // 重新索引所有卡片
+                    reindexCards();
+                    
+                    // 重新计算小结
                     calculateSummary();
                 }
             }
@@ -1097,12 +1117,12 @@
                     // 第一个卡片只显示+按钮
                     minusBtn.style.display = 'none';
                     plusBtn.style.display = 'flex';
-                } else if (index === cardCount - 1) {
-                    // 最后一个卡片只显示-按钮
+                } else if (index === cardCount - 1 && cardCount === maxCards) {
+                    // 当卡片数量达到最大值时，最后一个卡片只显示-按钮
                     minusBtn.style.display = 'flex';
                     plusBtn.style.display = 'none';
                 } else {
-                    // 中间卡片显示两个按钮
+                    // 其他卡片显示两个按钮
                     minusBtn.style.display = 'flex';
                     plusBtn.style.display = 'flex';
                 }
@@ -1122,8 +1142,15 @@
             const firstCard = createCard(0);
             cardGroupLOAD.appendChild(firstCard);
             
-            // 更新按钮显示
-            updateButtons();
+            // 绑定第一个卡片的按钮事件
+            const minusBtn = firstCard.querySelector('.minus');
+            const plusBtn = firstCard.querySelector('.plus');
+            
+            minusBtn.style.display = 'none';
+            
+            plusBtn.addEventListener('click', () => {
+                addCard(0);
+            });
             
             // 初始化小结卡片
             calculateSummary();
