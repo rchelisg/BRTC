@@ -156,20 +156,20 @@
         .card-container {
             padding: 0;
             width: 100%;
-            height: 100%;
             overflow-y: auto;
         }
         
         /* 卡片 */
         .card {
             border-radius: 0;
-            padding: 2px 6px;
+            padding: 2px 40px 2px 6px;
             margin: 8px auto;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: row;
             align-items: center;
             width: 95%;
+            position: relative;
         }
         
         /* 非卡片组的卡片保持最小高度 */
@@ -218,6 +218,13 @@
             padding: 0;
             display: flex;
             align-items: center;
+        }
+        
+        /* 报告卡片主体 */
+        .card[data-type="report"] .card-body {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 16px;
         }
         
         /* 变量容器 */
@@ -288,7 +295,7 @@
         
         /* PACK卡片标题 */
         .pack-title {
-            grid-column: 1;
+            grid-column: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -323,7 +330,7 @@
         
         /* N变量项 */
         .n-item {
-            grid-column: 2;
+            grid-column: 1;
         }
         
         /* C变量项 */
@@ -582,11 +589,384 @@
             color: #666;
             font-size: 14px;
             font-weight: bold;
+        }
+        
+        /* PACK卡片组样式 */
+        #card-group-PACK .load-summary-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .load-summary-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        #card-group-PACK .load-summary-l-item {
+            grid-column: 2;
+        }
+        
+        #card-group-PACK .load-summary-lmin-item {
+            grid-column: 7;
+        }
+        
+        #card-group-PACK .load-summary-lmax-item {
+            grid-column: 9;
+        }
+        
+        #card-group-PACK .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        #card-group-PACK .load-l-item {
+            grid-column: 2;
+        }
+        
+        #card-group-PACK .load-lmin-item {
+            grid-column: 7;
+        }
+        
+        #card-group-PACK .load-lmax-item {
+            grid-column: 9;
+        }
+        
+        #card-group-PACK .card-buttons {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) {
+            justify-content: space-between;
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) .minus {
+            align-self: center;
+            margin-top: 16.67%; /* 行1的位置 */
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) .plus {
+            align-self: center;
+            margin-bottom: 16.67%; /* 行4的位置 */
+        }
+        
+        /* 主卡片PACK样式 */
+        .pack-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pack-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        .n-item {
+            grid-column: 2;
+        }
+        
+        .n-item .variable-input {
+            width: 20px;
+        }
+        
+        .c-item {
+            grid-column: 4;
+        }
+        
+        .cmin-item {
+            grid-column: 8;
+        }
+        
+        .cmax-item {
+            grid-column: 10;
+        }
+        
+        /* 卡片组PACK样式 */
+        #card-group-PACK .load-summary-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .load-summary-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        #card-group-PACK .load-summary-l-item {
+            grid-column: 3;
+        }
+        
+        #card-group-PACK .load-summary-lmin-item {
+            grid-column: 8;
+        }
+        
+        #card-group-PACK .load-summary-lmax-item {
+            grid-column: 10;
+        }
+        
+        #card-group-PACK .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        #card-group-PACK .load-l-item {
+            grid-column: 3;
+        }
+        
+        #card-group-PACK .load-lmin-item {
+            grid-column: 8;
+        }
+        
+        #card-group-PACK .load-lmax-item {
+            grid-column: 10;
+        }
+        
+        #card-group-PACK .card-buttons {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) {
+            justify-content: space-between;
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) .minus {
+            align-self: center;
+            margin-top: 16.67%; /* 行1的位置 */
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) .plus {
+            align-self: center;
+            margin-bottom: 16.67%; /* 行4的位置 */
+        }
+        
+        #card-group-PACK .card-button {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 0;
+            background-color: transparent;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        #card-group-PACK .card-button:hover {
+            background-color: transparent;
+        }
+        
+        .card-button {
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             padding: 0;
+        }
+        
+        /* 输入框样式 */
+        .variable-input {
+            height: 22px;
+            font-size: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 3px 5px;
+            text-align: center;
+            width: 55px;
+        }
+        
+        /* 标签样式 */
+        .variable-label {
+            font-size: 10px;
+            color: #666;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        
+        /* 单位样式 */
+        .variable-unit {
+            font-size: 10px;
+            color: #666;
+            margin-left: 4px;
+        }
+        
+        /* 卡片间距 */
+        .card {
+            margin: 8px 0;
+        }
+        
+        /* 主卡片PACK样式 */
+        .card[data-type="pack"] {
+            width: 95%;
+            margin: 8px auto;
+        }
+        
+        /* 报告卡片REPORT_TIME样式 */
+        .card[data-type="report"] {
+            width: 95%;
+            margin: 8px auto;
+        }
+        
+        .report-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 12px 0;
+            text-align: center;
+        }
+        
+        .report-content {
+            width: 100%;
+        }
+        
+        .report-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+        }
+        
+        .report-item {
+            flex: 1;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        .report-divider {
+            margin: 12px 0;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .pack-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pack-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        .n-item {
+            grid-column: 2;
+        }
+        
+        .n-item .variable-input {
+            width: 20px;
+        }
+        
+        .c-item {
+            grid-column: 4;
+        }
+        
+        .cmin-item {
+            grid-column: 8;
+        }
+        
+        .cmax-item {
+            grid-column: 10;
+        }
+        
+        /* 输入框样式 */
+        .variable-input {
+            height: 22px;
+            font-size: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 3px 5px;
+            text-align: center;
+            width: 55px;
+        }
+        
+        /* 标签样式 */
+        .variable-label {
+            font-size: 10px;
+            color: #666;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        
+        /* 单位样式 */
+        .variable-unit {
+            font-size: 10px;
+            color: #666;
+            margin-left: 4px;
         }
         
         /* 卡片按钮悬停效果 */
@@ -597,6 +977,179 @@
         /* 卡片按钮点击效果 */
         .card-button:active {
             transform: scale(0.95);
+        }
+        
+        /* LOAD卡片组样式 */
+        #card-group-LOAD {
+            width: 95%;
+            margin: 8px auto;
+        }
+        
+        /* LOAD卡片组子卡片 */
+        #card-group-LOAD .card {
+            position: relative;
+            width: 100%;
+            margin: 4px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* LOAD卡片组子卡片高度 */
+        #card-group-LOAD .card:not(.summary-card) {
+            height: 40px !important;
+        }
+        
+        /* LOAD卡片组小结卡片高度 */
+        #card-group-LOAD .summary-card {
+            height: 50px !important;
+        }
+        
+        /* LOAD卡片组标题 */
+        #card-group-LOAD .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-LOAD .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* LOAD卡片组小结卡片标题 */
+        #card-group-LOAD .load-summary-title {
+            grid-column: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-LOAD .load-summary-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* LOAD卡片组L输入框 */
+        #card-group-LOAD .load-l-item {
+            grid-column: 2;
+        }
+        
+        /* LOAD卡片组Lmin输入框 */
+        #card-group-LOAD .load-lmin-item {
+            grid-column: 7;
+        }
+        
+        /* LOAD卡片组Lmax输入框 */
+        #card-group-LOAD .load-lmax-item {
+            grid-column: 9;
+        }
+        
+        /* LOAD卡片组小结卡片L显示框 */
+        #card-group-LOAD .load-summary-l-item {
+            grid-column: 2;
+        }
+        
+        /* LOAD卡片组小结卡片Lmin显示框 */
+        #card-group-LOAD .load-summary-lmin-item {
+            grid-column: 7;
+        }
+        
+        /* LOAD卡片组小结卡片Lmax显示框 */
+        #card-group-LOAD .load-summary-lmax-item {
+            grid-column: 9;
+        }
+        
+        /* LOAD卡片组按钮容器 */
+        #card-group-LOAD .card-buttons {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* LOAD卡片组按钮 */
+        #card-group-LOAD .card-button {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 0;
+            background-color: transparent;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        /* LOAD卡片组按钮悬停效果 */
+        #card-group-LOAD .card-button:hover {
+            color: #2196F3;
+        }
+        
+        /* LOAD卡片组输入框 */
+        #card-group-LOAD .variable-input {
+            height: 22px;
+            font-size: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 3px 5px;
+            text-align: center;
+            width: 55px;
+            -moz-appearance: textfield;
+        }
+        
+        /* LOAD卡片组输入框（去除上下箭头） */
+        #card-group-LOAD .variable-input::-webkit-outer-spin-button,
+        #card-group-LOAD .variable-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        /* LOAD卡片组显示框 */
+        #card-group-LOAD .variable-display {
+            font-size: 10px;
+            color: #333;
+            text-align: center;
+            width: 55px;
+            height: 22px;
+            line-height: 22px;
+            display: inline-block;
+        }
+        
+        /* LOAD卡片组标签 */
+        #card-group-LOAD .variable-label {
+            font-size: 10px;
+            color: #666;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        
+        /* LOAD卡片组单位 */
+        #card-group-LOAD .variable-unit {
+            font-size: 10px;
+            color: #666;
+            margin-left: 4px;
         }
         
         /* 禁用的输入框 */
@@ -705,7 +1258,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator v0.0
+            Battery Run Time Calculator v0.1
         </div>
         
         <!-- 按键区 -->
@@ -719,8 +1272,8 @@
             <!-- Calc子屏幕内容 -->
             <div class="subscreen-content Calc">
                 <div class="card-container">
-                    <!-- 测试卡片：PACK -->
-                    <div class="card" style="background-color: #BBDEFB;">
+                    <!-- 主卡片：PACK -->
+                    <div class="card" data-type="pack" style="background-color: #BBDEFB;">
                         <div class="card-content">
                             <div class="card-body">
                                 <div class="variable-container">
@@ -759,7 +1312,7 @@
                         </div>
                     </div>
                     
-                    <!-- 卡片组LOAD -->
+                    <!-- 卡片组：LOAD -->
                     <div class="card-group" id="card-group-LOAD">
                         <!-- 小结卡片 -->
                         <div class="card summary-card" style="background-color: #FFCDD2;">
@@ -795,6 +1348,39 @@
                             </div>
                         </div>
                         <!-- 子卡片将通过JavaScript动态生成 -->
+                    </div>
+                    
+                    <!-- 报告卡片：REPORT_TIME -->
+                    <div class="card" data-type="report" id="report-card" style="background-color: #FFF9C4;">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <h3 class="report-title">Battery Run Time</h3>
+                                <div class="report-content">
+                                    <div class="report-row">
+                                        <span class="report-item">N: <span id="report-N">0</span></span>
+                                    </div>
+                                    <div class="report-row">
+                                        <span class="report-item">C: <span id="report-C">0.0</span></span>
+                                        <span class="report-item">Cmin: <span id="report-Cmin">0.0</span></span>
+                                        <span class="report-item">Cmax: <span id="report-Cmax">0.0</span></span>
+                                    </div>
+                                    <div class="report-row">
+                                        <span class="report-item">L: <span id="report-L">0.0</span></span>
+                                        <span class="report-item">Lmin: <span id="report-Lmin">0.0</span></span>
+                                        <span class="report-item">Lmax: <span id="report-Lmax">0.0</span></span>
+                                    </div>
+                                    <div class="report-load-rows" id="report-load-rows">
+                                        <!-- 子卡片数据将通过JavaScript动态生成 -->
+                                    </div>
+                                    <hr class="report-divider">
+                                    <div class="report-row">
+                                        <span class="report-item">T: <span id="report-T">0.0</span></span>
+                                        <span class="report-item">Tmin: <span id="report-Tmin">0.0</span></span>
+                                        <span class="report-item">Tmax: <span id="report-Tmax">0.0</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -879,6 +1465,15 @@
             });
         }
         
+        // 初始化报告卡片监控
+        function initReportCardMonitoring() {
+            // 监控所有输入框的变化
+            const allInputs = document.querySelectorAll('.variable-input');
+            allInputs.forEach(input => {
+                input.addEventListener('change', updateReportCard);
+            });
+        }
+        
         // 输入验证函数
         function validateInput(input) {
             let value = input.value;
@@ -922,13 +1517,95 @@
         // 窗口大小变化监听
         window.addEventListener('resize', adjustSubscreenHeight);
         
-        // 卡片组LOAD逻辑
-        const cardGroupLOAD = document.getElementById('card-group-LOAD');
-        let cardCount = 0;
-        const maxCards = 5; // X=4, 所以X+1=5
+        // 输入验证函数
+        function validateInput(input) {
+            // 移除所有非数字和小数点的字符
+            let value = input.value.replace(/[^0-9.]/g, '');
+            
+            // 确保只有一个小数点
+            const decimalPoints = value.split('.').length - 1;
+            if (decimalPoints > 1) {
+                value = value.slice(0, value.lastIndexOf('.'));
+            }
+            
+            // 限制小数位数
+            if (value.includes('.')) {
+                const parts = value.split('.');
+                if (parts[1].length > 1) {
+                    value = parts[0] + '.' + parts[1].substring(0, 1);
+                }
+            }
+            
+            // 限制总长度
+            if (input.id === 'N') {
+                // N输入框限制1位数字
+                value = value.substring(0, 1);
+            } else if (['C', 'Cmin', 'Cmax'].includes(input.id)) {
+                // C、Cmin、Cmax输入框限制4位（含小数点）
+                value = value.substring(0, 4);
+            }
+            
+            input.value = value;
+        }
         
-        // 计算小结卡片值
-        function calculateSummary() {
+        // 初始化输入验证
+        function initInputValidation() {
+            const inputs = document.querySelectorAll('.variable-input');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    validateInput(input);
+                });
+            });
+        }
+        
+        // 输入验证函数
+        function validateInput(input) {
+            // 移除所有非数字和小数点的字符
+            let value = input.value.replace(/[^0-9.]/g, '');
+            
+            // 确保只有一个小数点
+            const decimalPoints = value.split('.').length - 1;
+            if (decimalPoints > 1) {
+                value = value.slice(0, value.lastIndexOf('.'));
+            }
+            
+            // 限制小数位数
+            if (value.includes('.')) {
+                const parts = value.split('.');
+                if (parts[1].length > 1) {
+                    value = parts[0] + '.' + parts[1].substring(0, 1);
+                }
+            }
+            
+            // 限制总长度
+            if (input.id === 'N') {
+                // N输入框限制1位数字
+                value = value.substring(0, 1);
+            } else if (['C', 'Cmin', 'Cmax'].includes(input.id)) {
+                // C、Cmin、Cmax输入框限制4位（含小数点）
+                value = value.substring(0, 4);
+            }
+            
+            input.value = value;
+        }
+        
+        // 初始化输入验证
+        function initInputValidation() {
+            const inputs = document.querySelectorAll('.variable-input');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    validateInput(input);
+                });
+            });
+        }
+        
+        // LOAD卡片组逻辑
+        const cardGroupLOAD = document.getElementById('card-group-LOAD');
+        let loadCardCount = 0;
+        const maxLoadCards = 5; // X=4, 所以X+1=5
+        
+        // 计算LOAD卡片组小结值
+        function calculateLoadSummary() {
             let sumL = 0;
             let sumLmin = 0;
             let sumLmax = 0;
@@ -961,8 +1638,8 @@
             document.getElementById('summary-Lmax').textContent = sumLmax.toFixed(1);
         }
         
-        // 创建子卡片
-        function createCard(index) {
+        // 创建LOAD子卡片
+        function createLoadCard(index) {
             const card = document.createElement('div');
             card.className = 'card';
             card.style.backgroundColor = '#FFCDD2';
@@ -1006,14 +1683,17 @@
                     validateInput(e.target);
                 });
                 
-                input.addEventListener('blur', calculateSummary);
+                input.addEventListener('blur', calculateLoadSummary);
+                
+                // 添加change事件，更新报告卡片
+                input.addEventListener('change', updateReportCard);
             });
             
             return card;
         }
         
-        // 重新索引所有卡片
-        function reindexCards() {
+        // 重新索引LOAD卡片
+        function reindexLoadCards() {
             const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
             cards.forEach((card, i) => {
                 // 更新索引
@@ -1051,23 +1731,23 @@
                 
                 // 绑定新的事件监听器
                 newMinusBtn.addEventListener('click', () => {
-                    removeCard(i);
+                    removeLoadCard(i);
                 });
                 
                 newPlusBtn.addEventListener('click', () => {
-                    addCard(i);
+                    addLoadCard(i);
                 });
             });
             
             // 更新按钮显示
-            updateButtons();
+            updateLoadButtons();
         }
         
-        // 添加卡片
-        function addCard(index) {
-            if (cardCount < maxCards) {
+        // 添加LOAD卡片
+        function addLoadCard(index) {
+            if (loadCardCount < maxLoadCards) {
                 // 创建新卡片
-                const newCard = createCard(index + 1);
+                const newCard = createLoadCard(index + 1);
                 
                 // 找到当前卡片并在其后插入新卡片
                 const currentCard = cardGroupLOAD.querySelector(`.card[data-index="${index}"]`);
@@ -1078,16 +1758,16 @@
                 }
                 
                 // 增加卡片计数
-                cardCount++;
+                loadCardCount++;
                 
                 // 重新索引所有卡片
-                reindexCards();
+                reindexLoadCards();
             }
         }
         
-        // 删除卡片
-        function removeCard(index) {
-            if (cardCount > 1) {
+        // 删除LOAD卡片
+        function removeLoadCard(index) {
+            if (loadCardCount > 1) {
                 // 找到要删除的卡片
                 const card = cardGroupLOAD.querySelector(`.card[data-index="${index}"]`);
                 if (card) {
@@ -1095,19 +1775,19 @@
                     card.remove();
                     
                     // 减少卡片计数
-                    cardCount--;
+                    loadCardCount--;
                     
                     // 重新索引所有卡片
-                    reindexCards();
+                    reindexLoadCards();
                     
                     // 重新计算小结
-                    calculateSummary();
+                    calculateLoadSummary();
                 }
             }
         }
         
-        // 更新按钮显示
-        function updateButtons() {
+        // 更新LOAD卡片按钮显示
+        function updateLoadButtons() {
             const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
             cards.forEach((card, index) => {
                 const minusBtn = card.querySelector('.minus');
@@ -1117,7 +1797,7 @@
                     // 第一个卡片只显示+按钮
                     minusBtn.style.display = 'none';
                     plusBtn.style.display = 'flex';
-                } else if (index === cardCount - 1 && cardCount === maxCards) {
+                } else if (index === loadCardCount - 1 && loadCardCount === maxLoadCards) {
                     // 当卡片数量达到最大值时，最后一个卡片只显示-按钮
                     minusBtn.style.display = 'flex';
                     plusBtn.style.display = 'none';
@@ -1129,17 +1809,17 @@
             });
         }
         
-        // 初始化卡片组
-        function initCardGroup() {
+        // 初始化LOAD卡片组
+        function initLoadCardGroup() {
             // 清空现有子卡片（保留小结卡片）
             const existingCards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
             existingCards.forEach(card => card.remove());
             
             // 初始化卡片数量
-            cardCount = 1;
+            loadCardCount = 1;
             
             // 创建第一个卡片
-            const firstCard = createCard(0);
+            const firstCard = createLoadCard(0);
             cardGroupLOAD.appendChild(firstCard);
             
             // 绑定第一个卡片的按钮事件
@@ -1149,17 +1829,112 @@
             minusBtn.style.display = 'none';
             
             plusBtn.addEventListener('click', () => {
-                addCard(0);
+                addLoadCard(0);
             });
             
             // 初始化小结卡片
-            calculateSummary();
+            calculateLoadSummary();
+        }
+        
+        // 更新报告卡片
+        function updateReportCard() {
+            // 更新N值
+            const nInput = document.getElementById('N');
+            const reportN = document.getElementById('report-N');
+            reportN.textContent = nInput.value || '0';
+            
+            // 更新C、Cmin、Cmax值
+            const cInput = document.getElementById('C');
+            const cminInput = document.getElementById('Cmin');
+            const cmaxInput = document.getElementById('Cmax');
+            document.getElementById('report-C').textContent = cInput.value || '0.0';
+            document.getElementById('report-Cmin').textContent = cminInput.value || '0.0';
+            document.getElementById('report-Cmax').textContent = cmaxInput.value || '0.0';
+            
+            // 更新L、Lmin、Lmax值（从LOAD小结卡片获取）
+            const summaryL = document.getElementById('summary-L');
+            const summaryLmin = document.getElementById('summary-Lmin');
+            const summaryLmax = document.getElementById('summary-Lmax');
+            document.getElementById('report-L').textContent = summaryL.textContent;
+            document.getElementById('report-Lmin').textContent = summaryLmin.textContent;
+            document.getElementById('report-Lmax').textContent = summaryLmax.textContent;
+            
+            // 更新子卡片数据
+            const loadRowsContainer = document.getElementById('report-load-rows');
+            loadRowsContainer.innerHTML = '';
+            
+            const loadCards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
+            loadCards.forEach((card, index) => {
+                const lInput = card.querySelector('.load-l-item input');
+                const lminInput = card.querySelector('.load-lmin-item input');
+                const lmaxInput = card.querySelector('.load-lmax-item input');
+                
+                const row = document.createElement('div');
+                row.className = 'report-row';
+                row.innerHTML = `
+                    <span class="report-item">L(${index}): <span>${lInput.value || '0.0'}</span></span>
+                    <span class="report-item">Lmin(${index}): <span>${lminInput.value || '0.0'}</span></span>
+                    <span class="report-item">Lmax(${index}): <span>${lmaxInput.value || '0.0'}</span></span>
+                `;
+                loadRowsContainer.appendChild(row);
+            });
+            
+            // 计算T、Tmin、Tmax值
+            calculateReportTimes();
+        }
+        
+        // 计算T、Tmin、Tmax值
+        function calculateReportTimes() {
+            // 获取N值
+            const nInput = document.getElementById('N');
+            const N = parseInt(nInput.value) || 0;
+            
+            // 获取C、Cmin、Cmax值
+            const cInput = document.getElementById('C');
+            const cminInput = document.getElementById('Cmin');
+            const cmaxInput = document.getElementById('Cmax');
+            const C = parseFloat(cInput.value) || 0;
+            const Cmin = parseFloat(cminInput.value) || 0;
+            const Cmax = parseFloat(cmaxInput.value) || 0;
+            
+            // 获取L、Lmin、Lmax值
+            const summaryL = document.getElementById('summary-L');
+            const summaryLmin = document.getElementById('summary-Lmin');
+            const summaryLmax = document.getElementById('summary-Lmax');
+            const L = parseFloat(summaryL.textContent) || 0;
+            const Lmin = parseFloat(summaryLmin.textContent) || 0;
+            const Lmax = parseFloat(summaryLmax.textContent) || 0;
+            
+            // 计算T、Tmin、Tmax
+            // 假设公式：T = (N * C) / L
+            let T = 0;
+            let Tmin = 0;
+            let Tmax = 0;
+            
+            if (L > 0) {
+                T = (N * C) / L;
+            }
+            
+            if (Lmax > 0) {
+                Tmin = (N * Cmin) / Lmax;
+            }
+            
+            if (Lmin > 0) {
+                Tmax = (N * Cmax) / Lmin;
+            }
+            
+            // 更新显示
+            document.getElementById('report-T').textContent = T.toFixed(1);
+            document.getElementById('report-Tmin').textContent = Tmin.toFixed(1);
+            document.getElementById('report-Tmax').textContent = Tmax.toFixed(1);
         }
         
         // 页面加载完成后初始化
         window.addEventListener('load', function() {
             initApp();
-            initCardGroup();
+            initInputValidation();
+            initLoadCardGroup();
+            initReportCardMonitoring();
             
             // Service Worker注册
             if ('serviceWorker' in navigator) {
