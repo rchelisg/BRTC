@@ -269,18 +269,35 @@
         
         .n-item {
             grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .n-item .variable-label {
+            text-align: center;
+            width: 100%;
+        }
+        
+        .n-item .input-with-unit {
+            display: flex;
+            justify-content: center;
         }
         
         .n-item .variable-input {
             width: 20px;
+            text-align: center;
         }
         
         .c-item {
             grid-column: 4;
+            transform: translateX(-10px);
         }
         
         .cmin-item {
             grid-column: 8;
+            transform: translateX(-10px);
         }
         
         .cmax-item {
@@ -354,52 +371,105 @@
         /* LOAD卡片组L输入框 */
         #card-group-LOAD .load-l-item {
             grid-column: 2;
+            text-align: center;
         }
         
         /* LOAD卡片组Lmin输入框 */
         #card-group-LOAD .load-lmin-item {
             grid-column: 7;
+            text-align: center;
         }
         
         /* LOAD卡片组Lmax输入框 */
         #card-group-LOAD .load-lmax-item {
             grid-column: 9;
+            text-align: center;
         }
         
         /* LOAD卡片组小结卡片L显示框 */
-        #card-group-LOAD .load-summary-l-item {
+        #card-group-LOAD .summary-card .load-summary-l-item {
             grid-column: 2;
         }
         
+        /* LOAD卡片组小结卡片L显示值 */
+        #card-group-LOAD .summary-card .load-summary-l-item .input-with-unit {
+            margin-left: 10px;
+        }
+        
         /* LOAD卡片组小结卡片Lmin显示框 */
-        #card-group-LOAD .load-summary-lmin-item {
+        #card-group-LOAD .summary-card .load-summary-lmin-item {
             grid-column: 7;
         }
         
         /* LOAD卡片组小结卡片Lmax显示框 */
-        #card-group-LOAD .load-summary-lmax-item {
+        #card-group-LOAD .summary-card .load-summary-lmax-item {
             grid-column: 9;
         }
         
         /* LOAD卡片组小结卡片显示值 */
-        #card-group-LOAD .load-summary-l-item .input-with-unit,
-        #card-group-LOAD .load-summary-lmin-item .input-with-unit,
-        #card-group-LOAD .load-summary-lmax-item .input-with-unit {
+        #card-group-LOAD .summary-card .load-summary-l-item .input-with-unit {
             margin-top: -5px;
+            width: 55px;
+        }
+        
+        /* LOAD卡片组小结卡片Lmin显示值 */
+        #card-group-LOAD .summary-card .load-summary-lmin-item .input-with-unit {
+            margin-top: -5px;
+            width: 55px;
+            transform: translateX(7px);
+        }
+        
+        /* LOAD卡片组小结卡片Lmin单位 */
+        #card-group-LOAD .summary-card .load-summary-lmin-item .variable-unit {
+            transform: translateX(5px);
+        }
+        
+        /* LOAD卡片组小结卡片Lmax显示值 */
+        #card-group-LOAD .summary-card .load-summary-lmax-item .input-with-unit {
+            margin-top: -5px;
+            width: 55px;
+            transform: translateX(6px);
+        }
+        
+        /* LOAD卡片组小结卡片Lmax单位 */
+        #card-group-LOAD .summary-card .load-summary-lmax-item .variable-unit {
+            transform: translateX(10px);
+        }
+        
+        /* LOAD卡片组小结卡片L单位 */
+        #card-group-LOAD .summary-card .load-summary-l-item .variable-unit {
+            transform: translateX(6px);
+        }
+        
+        /* LOAD卡片组小结卡片L标签 */
+        #card-group-LOAD .summary-card .load-summary-l-item .variable-label,
+        #card-group-LOAD .summary-card .load-summary-lmax-item .variable-label {
+            margin-top: 0;
+            text-align: center;
+            display: block;
+            margin-left: -2px;
+        }
+        
+        /* LOAD卡片组小结卡片Lmin标签 */
+        #card-group-LOAD .summary-card .load-summary-lmin-item .variable-label {
+            margin-top: 0;
+            text-align: center;
+            display: block;
+            transform: translateX(-1px);
         }
         
         /* Lx里的输入框标签 */
         #card-group-LOAD .load-l-item .variable-label,
         #card-group-LOAD .load-lmin-item .variable-label,
         #card-group-LOAD .load-lmax-item .variable-label {
-            margin-top: 2px;
+            margin-top: 0;
         }
         
         /* Lx里的输入框 */
         #card-group-LOAD .load-l-item .input-with-unit,
         #card-group-LOAD .load-lmin-item .input-with-unit,
         #card-group-LOAD .load-lmax-item .input-with-unit {
-            margin-top: -2px;
+            margin-top: -5px;
         }
         
         /* LOAD卡片组按钮容器 */
@@ -628,7 +698,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v0.7</span>
+            Battery Run Time Calculator <span id="version">v3.9</span>
         </div>
         
         <!-- 按键区 -->
@@ -929,25 +999,36 @@
             // 根据卡片位置决定按钮显示
             let buttonsHTML = '';
             if (cardCount === 0) {
-                // 第一个卡片只显示+按钮
-                buttonsHTML = `
-                <div class="card-buttons">
-                    <button class="card-button plus" data-card="L${cardCount + 1}">+</button>
-                </div>
-                `;
+                // 第一个卡片 (L0)
+                if (cardCount === 0 && cards.length === 0) {
+                    // 只有一个卡片时，只显示+按钮
+                    buttonsHTML = `
+                    <div class="card-buttons">
+                        <button class="card-button plus" data-card="L${cardCount}">+</button>
+                    </div>
+                    `;
+                } else {
+                    // 有两个或以上卡片时，显示+和-按钮
+                    buttonsHTML = `
+                    <div class="card-buttons">
+                        <button class="card-button minus" data-card="L${cardCount}">-</button>
+                        <button class="card-button plus" data-card="L${cardCount}">+</button>
+                    </div>
+                    `;
+                }
             } else if (cardCount === 4) {
-                // 第5个卡片只显示-按钮
+                // 第5个卡片 (L4) 只显示-按钮
                 buttonsHTML = `
                 <div class="card-buttons">
-                    <button class="card-button minus" data-card="L${cardCount + 1}">-</button>
+                    <button class="card-button minus" data-card="L${cardCount}">-</button>
                 </div>
                 `;
             } else {
                 // 中间卡片显示+和-按钮
                 buttonsHTML = `
                 <div class="card-buttons">
-                    <button class="card-button minus" data-card="L${cardCount + 1}">-</button>
-                    <button class="card-button plus" data-card="L${cardCount + 1}">+</button>
+                    <button class="card-button minus" data-card="L${cardCount}">-</button>
+                    <button class="card-button plus" data-card="L${cardCount}">+</button>
                 </div>
                 `;
             }
@@ -957,26 +1038,26 @@
                     <div class="card-body">
                         <div class="variable-container">
                             <div class="variable-item load-title">
-                                <h3>L${cardCount + 1}</h3>
+                                <h3>L${cardCount}</h3>
                             </div>
                             <div class="variable-item load-l-item">
                                 <label class="variable-label">Load</label>
                                 <div class="input-with-unit">
-                                    <input type="number" class="variable-input" id="L${cardCount + 1}" placeholder="0.0" step="0.1" min="0">
+                                    <input type="number" class="variable-input" id="L${cardCount}" placeholder="0.0" step="0.1" min="0">
                                     <span class="variable-unit">W</span>
                                 </div>
                             </div>
                             <div class="variable-item load-lmin-item">
                                 <label class="variable-label">Lmin</label>
                                 <div class="input-with-unit">
-                                    <input type="number" class="variable-input" id="L${cardCount + 1}min" placeholder="0.0" step="0.1" min="0">
+                                    <input type="number" class="variable-input" id="L${cardCount}min" placeholder="0.0" step="0.1" min="0">
                                     <span class="variable-unit">W</span>
                                 </div>
                             </div>
                             <div class="variable-item load-lmax-item">
                                 <label class="variable-label">Lmax</label>
                                 <div class="input-with-unit">
-                                    <input type="number" class="variable-input" id="L${cardCount + 1}max" placeholder="0.0" step="0.1" min="0">
+                                    <input type="number" class="variable-input" id="L${cardCount}max" placeholder="0.0" step="0.1" min="0">
                                     <span class="variable-unit">W</span>
                                 </div>
                             </div>
@@ -1090,7 +1171,7 @@
             
             const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
             cards.forEach((card, index) => {
-                const cardNumber = index + 1;
+                const cardNumber = index; // 从0开始索引
                 const titleElement = card.querySelector('.load-title h3');
                 const lInput = card.querySelector('.load-l-item input');
                 const lminInput = card.querySelector('.load-lmin-item input');
@@ -1118,12 +1199,21 @@
                     // 根据卡片位置决定按钮显示
                     let buttonsHTML = '';
                     if (index === 0) {
-                        // 第一个卡片只显示+按钮
-                        buttonsHTML = `
-                        <button class="card-button plus" data-card="L${cardNumber}">+</button>
-                        `;
+                        // 第一个卡片 (L0)
+                        if (cards.length === 1) {
+                            // 只有一个卡片时，只显示+按钮
+                            buttonsHTML = `
+                            <button class="card-button plus" data-card="L${cardNumber}">+</button>
+                            `;
+                        } else {
+                            // 有两个或以上卡片时，显示+和-按钮
+                            buttonsHTML = `
+                            <button class="card-button minus" data-card="L${cardNumber}">-</button>
+                            <button class="card-button plus" data-card="L${cardNumber}">+</button>
+                            `;
+                        }
                     } else if (index === cards.length - 1 && cards.length === 5) {
-                        // 第5个卡片只显示-按钮
+                        // 第5个卡片 (L4) 只显示-按钮
                         buttonsHTML = `
                         <button class="card-button minus" data-card="L${cardNumber}">-</button>
                         `;
