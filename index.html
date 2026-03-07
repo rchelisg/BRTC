@@ -83,7 +83,6 @@
         /* 按键激活状态 */
         .button.active {
             color: #2196F3;
-            border-bottom: 2px solid #2196F3;
         }
         
         /* 子屏幕区域 */
@@ -227,14 +226,19 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v0.0</span>
+            Battery Run Time Calculator <span id="version">v0.1</span>
         </div>
         
         <!-- 按键区 -->
         <div class="button-area">
             <div class="button active">Calc</div>
             <div class="button">DfX</div>
-            <div class="button">Settings</div>
+            <div class="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </div>
         </div>
         
         <!-- 子屏幕区域 -->
@@ -251,27 +255,8 @@
     </div>
     
     <script>
-        // 版本号管理
-        function manageVersion() {
-            let version = localStorage.getItem('app_version');
-            
-            if (!version) {
-                version = '0.0';
-            } else {
-                // 版本号递增
-                const parts = version.split('.');
-                const minorVersion = parseInt(parts[1]) + 1;
-                version = `${parts[0]}.${minorVersion}`;
-            }
-            
-            localStorage.setItem('app_version', version);
-            document.getElementById('version').textContent = `v${version}`;
-            return version;
-        }
-        
         // 时间戳生成和存储
         function generateTimestamp() {
-            const version = manageVersion(); // 管理版本号
             let timestamp = localStorage.getItem('app_timestamp');
             
             if (!timestamp) {
@@ -308,7 +293,7 @@
             const subscreenArea = document.querySelector('.subscreen-area');
             const subscreenContent = document.getElementById('subscreen-content');
             
-            buttons.forEach(button => {
+            buttons.forEach((button, index) => {
                 button.addEventListener('click', () => {
                     // 移除所有按键的active类
                     buttons.forEach(btn => btn.classList.remove('active'));
@@ -317,11 +302,21 @@
                     
                     // 移除所有子屏幕类
                     subscreenArea.classList.remove('Calc', 'DfX', 'Settings');
-                    // 根据按钮文本添加对应的子屏幕类
-                    const buttonText = button.textContent.trim();
-                    subscreenArea.classList.add(buttonText);
+                    
+                    // 根据按钮索引确定子屏幕类型
+                    let screenType;
+                    if (index === 0) {
+                        screenType = 'Calc';
+                    } else if (index === 1) {
+                        screenType = 'DfX';
+                    } else if (index === 2) {
+                        screenType = 'Settings';
+                    }
+                    
+                    // 添加对应的子屏幕类
+                    subscreenArea.classList.add(screenType);
                     // 更新子屏幕内容
-                    subscreenContent.textContent = `${buttonText} 子屏幕`;
+                    subscreenContent.textContent = `${screenType} 子屏幕`;
                 });
             });
         }
