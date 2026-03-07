@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <meta name="theme-color" content="#81C784">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Battery Calculator">
+    <link rel="manifest" href="manifest.json">
+    <title>Battery Run Time Calculator</title>
+    <style>
+        /* 全局重置样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* 字体设置 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            height: 100%;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            overscroll-behavior: auto;
+            overflow-y: auto;
+        }
+        
+        /* 安全区域处理 */
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+        
+        /* 应用容器 */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            height: 100%;
+        }
+        
+        /* 标题区 */
+        .header {
+            background-color: #81C784;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* 按键区 */
+        .button-area {
+            display: flex;
+            padding: 8px 16px;
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        /* 按键 */
+        .button {
+            flex: 1;
+            padding: 4px 8px;
+            background-color: transparent;
+            border: none;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            margin: 0 8px;
+        }
+        
+        /* 按键激活状态 */
+        .button.active {
+            color: #2196F3;
+            border-bottom: 2px solid #2196F3;
+        }
+        
+        /* 子屏幕区域 */
+        .subscreen-area {
+            flex: 1;
+            background-color: white;
+            margin: 0;
+            border-radius: 0;
+            box-shadow: none;
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            min-height: 0;
+            overscroll-behavior: contain;
+            position: relative;
+        }
+        
+        /* 子屏幕内容 */
+        .subscreen-content {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+        }
+        
+        /* 激活的子屏幕内容 */
+        .subscreen-content.Calc {
+            display: block;
+        }
+        
+        .subscreen-content.DfX {
+            display: none;
+        }
+        
+        /* 当subscreen-area有对应类时显示相应的子屏幕内容并设置背景颜色 */
+        .subscreen-area.Calc {
+            background-color: #FFF8E1;
+        }
+        
+        .subscreen-area.Calc .subscreen-content.Calc {
+            display: block;
+        }
+        
+        .subscreen-area.Calc .subscreen-content.DfX {
+            display: none;
+        }
+        
+        .subscreen-area.DfX {
+            background-color: #BBDEFB;
+        }
+        
+        .subscreen-area.DfX .subscreen-content.Calc {
+            display: none;
+        }
+        
+        .subscreen-area.DfX .subscreen-content.DfX {
+            display: block;
+        }
+        
+        /* 注脚区 */
+        .footer {
+            padding: 11px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        /* 卡片容器 */
+        .card-container {
+            padding: 0;
+            width: 100%;
+            overflow-y: auto;
+        }
+        
+        /* 卡片 */
+        .card {
+            border-radius: 0;
+            padding: 2px 40px 2px 6px;
+            margin: 8px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 95%;
+            position: relative;
+        }
+        
+        /* 非卡片组的卡片保持最小高度 */
+        .card-container > .card:not(.card-group .card) {
+            min-height: 60px;
+        }
+        
+        /* 左对齐标签 */
+        .label-left {
+            justify-content: flex-start !important;
+            text-align: left !important;
+        }
+        
+        /* 右对齐标签 */
+        .label-right {
+            justify-content: flex-end !important;
+            text-align: right !important;
+        }
+        
+        /* 卡片内容 */
+        .card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        /* 卡片头部 */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* 卡片标题 */
+        .card-header h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1;
+        }
+        
+        /* 卡片主体 */
+        .card-body {
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 报告卡片主体 */
+        .card[data-type="report"] .card-body {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 16px;
+        }
+        
+        /* 变量容器 */
+        .variable-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            width: 100%;
+            align-items: center;
+        }
+        
+        /* 变量项 */
+        .variable-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        /* T变量项 */
+        .t-item {
+            grid-column: 2;
+        }
+        
+        /* Tmin变量项 */
+        .tmin-item {
+            grid-column: 7;
+        }
+        
+        /* Tmax变量项 */
+        .tmax-item {
+            grid-column: 9;
+        }
+        
+        /* L变量项 */
+        .l-item {
+            grid-column: 2;
+        }
+        
+        /* Lmin变量项 */
+        .lmin-item {
+            grid-column: 7;
+        }
+        
+        /* Lmax变量项 */
+        .lmax-item {
+            grid-column: 9;
+        }
+        
+        /* Load卡片标题 */
+        .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* PACK卡片标题 */
+        .pack-title {
+            grid-column: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pack-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* N输入框 */
+        .n-input {
+            width: 20px !important;
+        }
+        
+        /* N输入框标签 */
+        .n-item .variable-label {
+            width: 20px;
+        }
+        
+        /* N输入框容器 */
+        .n-item .input-with-unit {
+            width: 20px;
+        }
+        
+        /* N变量项 */
+        .n-item {
+            grid-column: 1;
+        }
+        
+        /* C变量项 */
+        .c-item {
+            grid-column: 3;
+        }
+        
+        /* Cmin变量项 */
+        .cmin-item {
+            grid-column: 7;
+        }
+        
+        /* Cmax变量项 */
+        .cmax-item {
+            grid-column: 9;
+        }
+        
+        /* 变量显示 */
+        .variable-display {
+            font-size: 10px;
+            color: #333;
+            text-align: center;
+            width: 45px;
+            height: 22px;
+            line-height: 22px;
+            display: inline-block;
+        }
+        
+        /* 卡片组 */
+        .card-group {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* L卡片标题 */
+        .l-card-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .l-card-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        /* L卡片L输入框 */
+        .l-card-l-item {
+            grid-column: 2;
+        }
+
+        /* L卡片Lmin输入框 */
+        .l-card-lmin-item {
+            grid-column: 7;
+        }
+
+        /* L卡片Lmax输入框 */
+        .l-card-lmax-item {
+            grid-column: 9;
+        }
+
+        /* L卡片按钮 */
+        .l-card-buttons {
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        /* 卡片组的子卡片 */
+        .card-group .card:not(.summary-card) {
+            height: 40px;
+            margin: 4px auto;
+        }
+        
+        /* 小结卡片 */
+        .summary-card {
+            height: 50px !important;
+            margin: 4px auto;
+        }
+        
+        /* LOAD卡片组样式 */
+        #card-group-LOAD {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* LOAD卡片标题 */
+        .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* LOAD卡片L输入框 */
+        .load-l-item {
+            grid-column: 2;
+        }
+        
+        /* LOAD卡片Lmin输入框 */
+        .load-lmin-item {
+            grid-column: 7;
+        }
+        
+        /* LOAD卡片Lmax输入框 */
+        .load-lmax-item {
+            grid-column: 9;
+        }
+        
+        /* LOAD卡片按钮 */
+        .load-buttons {
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        /* LOAD小结卡片标题 */
+        .load-summary-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .load-summary-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* LOAD小结卡片L显示框 */
+        .load-summary-l-item {
+            grid-column: 2;
+        }
+        
+        /* LOAD小结卡片Lmin显示框 */
+        .load-summary-lmin-item {
+            grid-column: 7;
+        }
+        
+        /* LOAD小结卡片Lmax显示框 */
+        .load-summary-lmax-item {
+            grid-column: 9;
+        }
+        
+        /* 卡片组的变量项 */
+        .card-group .variable-item {
+            gap: 2px;
+        }
+        
+        /* 子卡片的变量项 */
+        .card-group .card:not(.summary-card) .variable-item {
+            gap: 0;
+        }
+        
+        /* 变量标签 */
+        .variable-label {
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+            width: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 输入框带单位容器 */
+        .input-with-unit {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            width: 55px;
+        }
+        
+        /* 输入框带按钮容器 */
+        .input-with-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        /* 变量输入框 */
+        .variable-input {
+            width: 55px;
+            padding: 3px 5px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 10px;
+            text-align: center;
+            height: 22px;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* 左对齐输入框 */
+        .input-left {
+            text-align: left !important;
+        }
+        
+        /* 右对齐输入框 */
+        .input-right {
+            text-align: right !important;
+        }
+        
+        /* 变量单位 */
+        .variable-unit {
+            font-size: 10px;
+            color: #666;
+            white-space: nowrap;
+        }
+        
+        /* 卡片按钮容器 */
+        .card-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+            justify-content: space-evenly;
+            margin-left: 8px;
+        }
+        
+        /* 卡片按钮 */
+        .card-button {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            background-color: white;
+            color: #666;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        /* PACK卡片组样式 */
+        #card-group-PACK .load-summary-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .load-summary-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        #card-group-PACK .load-summary-l-item {
+            grid-column: 2;
+        }
+        
+        #card-group-PACK .load-summary-lmin-item {
+            grid-column: 7;
+        }
+        
+        #card-group-PACK .load-summary-lmax-item {
+            grid-column: 9;
+        }
+        
+        #card-group-PACK .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        #card-group-PACK .load-l-item {
+            grid-column: 2;
+        }
+        
+        #card-group-PACK .load-lmin-item {
+            grid-column: 7;
+        }
+        
+        #card-group-PACK .load-lmax-item {
+            grid-column: 9;
+        }
+        
+        #card-group-PACK .card-buttons {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) {
+            justify-content: space-between;
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) .minus {
+            align-self: center;
+            margin-top: 16.67%; /* 行1的位置 */
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) .plus {
+            align-self: center;
+            margin-bottom: 16.67%; /* 行4的位置 */
+        }
+        
+        /* 主卡片PACK样式 */
+        .pack-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pack-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        .n-item {
+            grid-column: 2;
+        }
+        
+        .n-item .variable-input {
+            width: 20px;
+        }
+        
+        .c-item {
+            grid-column: 4;
+        }
+        
+        .cmin-item {
+            grid-column: 8;
+        }
+        
+        .cmax-item {
+            grid-column: 10;
+        }
+        
+        /* 卡片组PACK样式 */
+        #card-group-PACK .load-summary-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .load-summary-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        #card-group-PACK .load-summary-l-item {
+            grid-column: 3;
+        }
+        
+        #card-group-PACK .load-summary-lmin-item {
+            grid-column: 8;
+        }
+        
+        #card-group-PACK .load-summary-lmax-item {
+            grid-column: 10;
+        }
+        
+        #card-group-PACK .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        #card-group-PACK .load-l-item {
+            grid-column: 3;
+        }
+        
+        #card-group-PACK .load-lmin-item {
+            grid-column: 8;
+        }
+        
+        #card-group-PACK .load-lmax-item {
+            grid-column: 10;
+        }
+        
+        #card-group-PACK .card-buttons {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) {
+            justify-content: space-between;
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) .minus {
+            align-self: center;
+            margin-top: 16.67%; /* 行1的位置 */
+        }
+        
+        #card-group-PACK .card-buttons:has(.minus + .plus) .plus {
+            align-self: center;
+            margin-bottom: 16.67%; /* 行4的位置 */
+        }
+        
+        #card-group-PACK .card-button {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 0;
+            background-color: transparent;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        #card-group-PACK .card-button:hover {
+            background-color: transparent;
+        }
+        
+        .card-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        /* 输入框样式 */
+        .variable-input {
+            height: 22px;
+            font-size: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 3px 5px;
+            text-align: center;
+            width: 55px;
+        }
+        
+        /* 标签样式 */
+        .variable-label {
+            font-size: 10px;
+            color: #666;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        
+        /* 单位样式 */
+        .variable-unit {
+            font-size: 10px;
+            color: #666;
+            margin-left: 4px;
+        }
+        
+        /* 卡片间距 */
+        .card {
+            margin: 8px 0;
+        }
+        
+        /* 主卡片PACK样式 */
+        .card[data-type="pack"] {
+            width: 95%;
+            margin: 8px auto;
+        }
+        
+        /* 报告卡片REPORT_TIME样式 */
+        .card[data-type="report"] {
+            width: 95%;
+            margin: 8px auto;
+        }
+        
+        .report-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .report-title {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+        
+        .report-icon {
+            font-size: 20px;
+        }
+        
+        .copy-icon {
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .report-header {
+            position: relative;
+        }
+        
+        .report-content {
+            width: 100%;
+        }
+        
+        .report-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            white-space: nowrap;
+        }
+        
+        /* 减小Lx行的行间距 */
+        .report-load-rows .report-row {
+            margin-bottom: 2px;
+        }
+        
+        /* 减小Load行和L0行之间的行间距 */
+        .report-load-rows {
+            margin-top: 2px;
+        }
+        
+        /* Lx行的文字颜色为浅灰色 */
+        .report-load-rows .report-label {
+            color: #999;
+        }
+        
+        .report-load-rows .report-value {
+            color: #999;
+        }
+        
+        /* 空白行样式 */
+        .report-blank-row {
+            height: 8px;
+        }
+        
+        .report-label {
+            width: 60px;
+            font-size: 12px;
+            color: #333;
+            text-align: right;
+        }
+        
+        /* Lx标签使用不同的颜色 */
+        .report-label.load-label {
+            color: #666;
+        }
+        
+        .report-values {
+            flex: 1;
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .report-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            width: 60px;
+            text-align: right;
+            margin-right: 20px;
+        }
+        
+        /* 为Cells行的数值添加特殊对齐 */
+        .report-row:first-child .report-values {
+            justify-content: flex-start;
+        }
+        
+        .report-row:first-child .report-value {
+            margin-left: 0;
+            text-align: right;
+        }
+        
+        .report-unit {
+            width: 40px;
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+        }
+        
+        .report-header-row {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .report-header-row .report-values {
+            flex: 1;
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .report-header-row .report-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            width: 60px;
+            text-align: right;
+            margin-right: 20px;
+        }
+        
+        /* 调整单位的对齐方式 */
+        .report-unit {
+            text-align: left;
+        }
+        
+        .report-time-row {
+            margin-top: 8px;
+        }
+        
+        .report-time-row .report-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .pack-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pack-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        .n-item {
+            grid-column: 2;
+        }
+        
+        .n-item .variable-input {
+            width: 20px;
+        }
+        
+        .c-item {
+            grid-column: 4;
+        }
+        
+        .cmin-item {
+            grid-column: 8;
+        }
+        
+        .cmax-item {
+            grid-column: 10;
+        }
+        
+        /* 输入框样式 */
+        .variable-input {
+            height: 22px;
+            font-size: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 3px 5px;
+            text-align: center;
+            width: 55px;
+        }
+        
+        /* 标签样式 */
+        .variable-label {
+            font-size: 10px;
+            color: #666;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        
+        /* 单位样式 */
+        .variable-unit {
+            font-size: 10px;
+            color: #666;
+            margin-left: 4px;
+        }
+        
+        /* 卡片按钮悬停效果 */
+        .card-button:hover {
+            color: #2196F3;
+        }
+        
+        /* 卡片按钮点击效果 */
+        .card-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* LOAD卡片组样式 */
+        #card-group-LOAD {
+            width: 95%;
+            margin: 8px auto;
+        }
+        
+        /* LOAD卡片组子卡片 */
+        #card-group-LOAD .card {
+            position: relative;
+            width: 100%;
+            margin: 4px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* LOAD卡片组子卡片高度 */
+        #card-group-LOAD .card:not(.summary-card) {
+            height: 40px !important;
+        }
+        
+        /* LOAD卡片组小结卡片高度 */
+        #card-group-LOAD .summary-card {
+            height: 50px !important;
+        }
+        
+        /* LOAD卡片组标题 */
+        #card-group-LOAD .load-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-LOAD .load-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* LOAD卡片组小结卡片标题 */
+        #card-group-LOAD .load-summary-title {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #card-group-LOAD .load-summary-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        /* LOAD卡片组L输入框 */
+        #card-group-LOAD .load-l-item {
+            grid-column: 2;
+        }
+        
+        /* LOAD卡片组Lmin输入框 */
+        #card-group-LOAD .load-lmin-item {
+            grid-column: 7;
+        }
+        
+        /* LOAD卡片组Lmax输入框 */
+        #card-group-LOAD .load-lmax-item {
+            grid-column: 9;
+        }
+        
+        /* LOAD卡片组小结卡片L显示框 */
+        #card-group-LOAD .load-summary-l-item {
+            grid-column: 2;
+        }
+        
+        /* LOAD卡片组小结卡片Lmin显示框 */
+        #card-group-LOAD .load-summary-lmin-item {
+            grid-column: 7;
+        }
+        
+        /* LOAD卡片组小结卡片Lmax显示框 */
+        #card-group-LOAD .load-summary-lmax-item {
+            grid-column: 9;
+        }
+        
+        /* LOAD卡片组按钮容器 */
+        #card-group-LOAD .card-buttons {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* LOAD卡片组按钮 */
+        #card-group-LOAD .card-button {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 0;
+            background-color: transparent;
+            color: #999;
+            font-size: 10px;
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        /* LOAD卡片组按钮悬停效果 */
+        #card-group-LOAD .card-button:hover {
+            color: #2196F3;
+        }
+        
+        /* 当同时有+和-按钮时的样式 */
+        #card-group-LOAD .card-buttons:has(.minus + .plus) .minus {
+            transform: translateY(2px);
+        }
+        
+        #card-group-LOAD .card-buttons:has(.minus + .plus) .plus {
+            transform: translateY(-3px);
+        }
+        
+        /* LOAD卡片组输入框 */
+        #card-group-LOAD .variable-input {
+            height: 22px;
+            font-size: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 3px 5px;
+            text-align: center;
+            width: 55px;
+            -moz-appearance: textfield;
+        }
+        
+        /* LOAD卡片组输入框（去除上下箭头） */
+        #card-group-LOAD .variable-input::-webkit-outer-spin-button,
+        #card-group-LOAD .variable-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        /* LOAD卡片组显示框 */
+        #card-group-LOAD .variable-display {
+            font-size: 10px;
+            color: #333;
+            text-align: center;
+            width: 55px;
+            height: 22px;
+            line-height: 22px;
+            display: inline-block;
+        }
+        
+        /* LOAD卡片组标签 */
+        #card-group-LOAD .variable-label {
+            font-size: 10px;
+            color: #666;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        
+        /* LOAD卡片组单位 */
+        #card-group-LOAD .variable-unit {
+            font-size: 10px;
+            color: #666;
+            margin-left: 4px;
+        }
+        
+        /* 禁用的输入框 */
+        .variable-input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        
+        /* 响应式设计 - 小屏幕设备 */
+        @media (max-width: 320px) {
+            .header {
+                font-size: 12px;
+                padding: 9px;
+            }
+            
+            .button {
+                font-size: 10px;
+                padding: 4px 6px;
+            }
+            
+            .subscreen-area {
+                font-size: 16px;
+            }
+            
+            .footer {
+                font-size: 9px;
+                padding: 8.4px;
+            }
+        }
+        
+        /* 响应式设计 - 中等屏幕设备 */
+        @media (min-width: 321px) and (max-width: 375px) {
+            .header {
+                font-size: 14px;
+                padding: 10.5px;
+            }
+            
+            .button {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            
+            .subscreen-area {
+                font-size: 18px;
+            }
+            
+            .footer {
+                font-size: 10px;
+                padding: 9.8px;
+            }
+        }
+        
+        /* 响应式设计 - 大屏幕设备 */
+        @media (min-width: 376px) and (max-width: 428px) {
+            .header {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .button {
+                font-size: 14px;
+                padding: 4px 8px;
+            }
+            
+            .subscreen-area {
+                font-size: 20px;
+            }
+            
+            .footer {
+                font-size: 11px;
+                padding: 11.2px;
+            }
+        }
+        
+        /* 响应式设计 - 平板设备和普通浏览器 */
+        @media (min-width: 429px) {
+            body {
+                max-width: 428px;
+                margin: 0 auto;
+                border: 1px solid #e0e0e0;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            
+            .header {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .button {
+                font-size: 14px;
+                padding: 4px 8px;
+            }
+            
+            .subscreen-area {
+                font-size: 20px;
+            }
+            
+            .footer {
+                font-size: 11px;
+                padding: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 标题区 -->
+        <div class="header">
+            Battery Run Time Calculator v0.1
+        </div>
+        
+        <!-- 按键区 -->
+        <div class="button-area">
+            <div class="button active">Calc</div>
+            <div class="button">D<span style="font-style: italic;">f</span>X</div>
+        </div>
+        
+        <!-- 子屏幕区域 -->
+        <div class="subscreen-area">
+            <!-- Calc子屏幕内容 -->
+            <div class="subscreen-content Calc">
+                <div class="card-container">
+                    <!-- 主卡片：PACK -->
+                    <div class="card" data-type="pack" style="background-color: #BBDEFB;">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="variable-container">
+                                    <div class="variable-item pack-title">
+                                        <h3>PACK</h3>
+                                    </div>
+                                    <div class="variable-item n-item">
+                                        <label class="variable-label">Cell</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input n-input" id="N" placeholder="0" inputmode="numeric" maxlength="1">
+                                        </div>
+                                    </div>
+                                    <div class="variable-item c-item">
+                                        <label class="variable-label">Cap</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="C" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">mAh</span>
+                                        </div>
+                                    </div>
+                                    <div class="variable-item cmin-item">
+                                        <label class="variable-label">Min</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="Cmin" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">mAh</span>
+                                        </div>
+                                    </div>
+                                    <div class="variable-item cmax-item">
+                                        <label class="variable-label">Max</label>
+                                        <div class="input-with-unit">
+                                            <input type="text" class="variable-input" id="Cmax" placeholder="0.0" inputmode="decimal">
+                                            <span class="variable-unit">mAh</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 卡片组：LOAD -->
+                    <div class="card-group" id="card-group-LOAD">
+                        <!-- 小结卡片 -->
+                        <div class="card summary-card" style="background-color: #FFCDD2;">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="variable-container">
+                                        <div class="variable-item load-summary-title">
+                                            <h3>LOAD</h3>
+                                        </div>
+                                        <div class="variable-item load-summary-l-item">
+                                            <label class="variable-label">Load</label>
+                                            <div class="input-with-unit">
+                                                <span class="variable-display" id="summary-L">0.0</span>
+                                                <span class="variable-unit">W</span>
+                                            </div>
+                                        </div>
+                                        <div class="variable-item load-summary-lmin-item">
+                                            <label class="variable-label">Lmin</label>
+                                            <div class="input-with-unit">
+                                                <span class="variable-display" id="summary-Lmin">0.0</span>
+                                                <span class="variable-unit">W</span>
+                                            </div>
+                                        </div>
+                                        <div class="variable-item load-summary-lmax-item">
+                                            <label class="variable-label">Lmax</label>
+                                            <div class="input-with-unit">
+                                                <span class="variable-display" id="summary-Lmax">0.0</span>
+                                                <span class="variable-unit">W</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 子卡片将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- DfX子屏幕内容 -->
+            <div class="subscreen-content DfX">
+                <div class="card-container">
+                    <!-- 报告卡片：REPORT_TIME -->
+                    <div class="card" data-type="report" id="report-card" style="background-color: #E8F5E8;">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="report-header">
+                                    <h3 class="report-title">Battery Run Time Calculator</h3>
+                                    <div class="report-icon copy-icon" onclick="copyReportCard()">📄</div>
+                                </div>
+                                <div class="report-content">
+                                    <div class="report-row">
+                                        <div class="report-label">Cells</div>
+                                        <div class="report-values">
+                                            <div class="report-value" id="report-N">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="report-row">
+                                        <div class="report-label">Cell Cap</div>
+                                        <div class="report-values">
+                                            <div class="report-value" id="report-C">0.0</div>
+                                            <div class="report-value" id="report-Cmin">0.0</div>
+                                            <div class="report-value" id="report-Cmax">0.0</div>
+                                        </div>
+                                        <div class="report-unit">mAh</div>
+                                    </div>
+                                    <div class="report-row">
+                                        <div class="report-label">Current</div>
+                                        <div class="report-values">
+                                            <div class="report-value" id="report-I">0.0</div>
+                                            <div class="report-value" id="report-Imin">0.0</div>
+                                            <div class="report-value" id="report-Imax">0.0</div>
+                                        </div>
+                                        <div class="report-unit">A</div>
+                                    </div>
+                                    <div class="report-row">
+                                        <div class="report-label">Load</div>
+                                        <div class="report-values">
+                                            <div class="report-value" id="report-L">0.0</div>
+                                            <div class="report-value" id="report-Lmin">0.0</div>
+                                            <div class="report-value" id="report-Lmax">0.0</div>
+                                        </div>
+                                        <div class="report-unit">W</div>
+                                    </div>
+                                    <div class="report-load-rows" id="report-load-rows">
+                                        <!-- 子卡片数据将通过JavaScript动态生成 -->
+                                    </div>
+                                    <div class="report-blank-row"></div>
+                                    <div class="report-header-row">
+                                        <div class="report-label"></div>
+                                        <div class="report-values">
+                                            <div class="report-value">Nom</div>
+                                            <div class="report-value">Min</div>
+                                            <div class="report-value">Max</div>
+                                        </div>
+                                    </div>
+                                    <div class="report-row report-time-row">
+                                        <div class="report-label">Run Time</div>
+                                        <div class="report-values">
+                                            <div class="report-value" id="report-T">0.0</div>
+                                            <div class="report-value" id="report-Tmin">0.0</div>
+                                            <div class="report-value" id="report-Tmax">0.0</div>
+                                        </div>
+                                        <div class="report-unit">Min</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 注脚区 -->
+        <div class="footer">
+            <span id="timestamp"></span> (c) 2026
+        </div>
+    </div>
+    
+    <script>
+        // 时间戳生成
+        function generateTimestamp() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            document.getElementById('timestamp').textContent = timestamp;
+        }
+        
+        // 调整子屏幕高度
+        function adjustSubscreenHeight() {
+            const appContainer = document.querySelector('.app-container');
+            const header = document.querySelector('.header');
+            const buttonArea = document.querySelector('.button-area');
+            const footer = document.querySelector('.footer');
+            const subscreenArea = document.querySelector('.subscreen-area');
+            
+            if (appContainer && header && buttonArea && footer && subscreenArea) {
+                const totalHeight = appContainer.offsetHeight;
+                const usedHeight = header.offsetHeight + buttonArea.offsetHeight + footer.offsetHeight;
+                const subscreenHeight = totalHeight - usedHeight;
+                subscreenArea.style.height = `${subscreenHeight}px`;
+            }
+        }
+        
+        // 按键点击事件处理
+        function setupButtonListeners() {
+            const buttons = document.querySelectorAll('.button');
+            const subscreenArea = document.querySelector('.subscreen-area');
+            
+            buttons.forEach((button, index) => {
+                button.addEventListener('click', () => {
+                    // 移除所有按键的active类
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    // 为当前点击的按键添加active类
+                    button.classList.add('active');
+                    
+                    // 移除所有子屏幕类
+                    subscreenArea.classList.remove('Calc', 'DfX');
+                    // 根据按钮的索引来确定子屏幕类型
+                    if (index === 0) {
+                        // 第一个按钮是Calc
+                        subscreenArea.classList.add('Calc');
+                    } else if (index === 1) {
+                        // 第二个按钮是DfX
+                        subscreenArea.classList.add('DfX');
+                    }
+                });
+            });
+        }
+        
+        // 卡片功能初始化
+        function initCardFunctions() {
+            // 绑定输入框事件
+            const variableInputs = document.querySelectorAll('.variable-input');
+            variableInputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    // 验证输入值
+                    validateInput(e.target);
+                    // 这里可以添加实时计算的逻辑
+                });
+            });
+            
+            // 为PACK卡片的C、Cmin、Cmax输入框添加事件监听器
+            const cInput = document.getElementById('C');
+            const cminInput = document.getElementById('Cmin');
+            const cmaxInput = document.getElementById('Cmax');
+            
+            // 为输入框添加输入事件（用于实时更新报告卡片）
+            [cInput, cminInput, cmaxInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    // 实时更新报告卡片
+                    updateReportCard();
+                });
+            });
+            
+            // 为输入框添加change事件（用于范围检查）
+            [cInput, cminInput, cmaxInput].forEach(input => {
+                input.addEventListener('change', function() {
+                    const value = parseFloat(this.value) || 0;
+                    
+                    // 检查是否是初始状态（除了当前输入框外，其他两个都是0或空）
+                    let isInitialState = false;
+                    if (this.id === 'C') {
+                        isInitialState = (cminInput.value === '' || parseFloat(cminInput.value) === 0) && 
+                                        (cmaxInput.value === '' || parseFloat(cmaxInput.value) === 0);
+                    } else if (this.id === 'Cmin') {
+                        isInitialState = (cInput.value === '' || parseFloat(cInput.value) === 0) && 
+                                        (cmaxInput.value === '' || parseFloat(cmaxInput.value) === 0);
+                    } else if (this.id === 'Cmax') {
+                        isInitialState = (cInput.value === '' || parseFloat(cInput.value) === 0) && 
+                                        (cminInput.value === '' || parseFloat(cminInput.value) === 0);
+                    }
+                    
+                    if (isInitialState && value > 0) {
+                        // 初始状态，用户第一次输入值，将值赋给其他两个参数
+                        if (this.id === 'C') {
+                            cminInput.value = this.value;
+                            cmaxInput.value = this.value;
+                        } else if (this.id === 'Cmin') {
+                            cInput.value = this.value;
+                            cmaxInput.value = this.value;
+                        } else if (this.id === 'Cmax') {
+                            cInput.value = this.value;
+                            cminInput.value = this.value;
+                        }
+                    } else if (value > 0) {
+                        // 非初始状态，进行范围检查
+                        if (this.id === 'C') {
+                            // C不能小于Cmin，不能大于Cmax
+                            const cmin = parseFloat(cminInput.value) || 0;
+                            const cmax = parseFloat(cmaxInput.value) || 0;
+                            if (value < cmin) {
+                                this.value = cminInput.value;
+                            } else if (value > cmax) {
+                                this.value = cmaxInput.value;
+                            }
+                        } else if (this.id === 'Cmin') {
+                            // Cmin不能大于C和Cmax
+                            const c = parseFloat(cInput.value) || 0;
+                            const cmax = parseFloat(cmaxInput.value) || 0;
+                            if (value > c) {
+                                this.value = cInput.value;
+                            } else if (value > cmax) {
+                                this.value = cmaxInput.value;
+                            }
+                        } else if (this.id === 'Cmax') {
+                            // Cmax不能小于C和Cmin
+                            const c = parseFloat(cInput.value) || 0;
+                            const cmin = parseFloat(cminInput.value) || 0;
+                            if (value < c) {
+                                this.value = cInput.value;
+                            } else if (value < cmin) {
+                                this.value = cminInput.value;
+                            }
+                        }
+                    }
+                    
+                    // 更新报告卡片
+                    updateReportCard();
+                });
+            });
+            
+            // 初始化Calc按钮长按事件
+            initCalcButtonLongPress();
+        }
+        
+        // 初始化报告卡片监控
+        function initReportCardMonitoring() {
+            // 监控所有输入框的变化
+            const allInputs = document.querySelectorAll('.variable-input');
+            allInputs.forEach(input => {
+                input.addEventListener('input', updateReportCard);
+                input.addEventListener('change', updateReportCard);
+            });
+        }
+        
+        // 清除calc子屏幕上的所有内容
+        function clearCalcScreen() {
+            // 清除PACK卡片的输入框
+            document.getElementById('N').value = '';
+            document.getElementById('C').value = '';
+            document.getElementById('Cmin').value = '';
+            document.getElementById('Cmax').value = '';
+            
+            // 清除LOAD卡片组的所有输入框
+            const loadInputs = document.querySelectorAll('#card-group-LOAD .variable-input');
+            loadInputs.forEach(input => {
+                input.value = '';
+            });
+            
+            // 重新计算LOAD卡片组的小结值
+            calculateLoadSummary();
+            
+            // 更新报告卡片
+            updateReportCard();
+        }
+        
+        // 为Calc按钮添加长按事件
+        function initCalcButtonLongPress() {
+            const buttons = document.querySelectorAll('.button');
+            const calcButton = buttons[0]; // 第一个按钮是Calc
+            let pressTimer;
+            
+            if (calcButton) {
+                calcButton.addEventListener('mousedown', function() {
+                    pressTimer = setTimeout(clearCalcScreen, 500); // 500ms长按
+                });
+                
+                calcButton.addEventListener('mouseup', function() {
+                    clearTimeout(pressTimer);
+                });
+                
+                calcButton.addEventListener('mouseleave', function() {
+                    clearTimeout(pressTimer);
+                });
+                
+                // 触摸设备支持
+                calcButton.addEventListener('touchstart', function() {
+                    pressTimer = setTimeout(clearCalcScreen, 500); // 500ms长按
+                });
+                
+                calcButton.addEventListener('touchend', function() {
+                    clearTimeout(pressTimer);
+                });
+            }
+        }
+        
+        // 拷贝报告卡片内容到剪贴板
+        function copyReportCard() {
+            const reportCard = document.getElementById('report-card');
+            const reportTitle = document.querySelector('.report-title').textContent;
+            
+            // 收集所有报告数据，使用定间距字符并保持格式
+            let reportContent = `${reportTitle}\n`;
+            reportContent += `${'='.repeat(40)}\n`;
+            
+            // 添加Cells数据
+            const cellsValue = document.getElementById('report-N').textContent;
+            reportContent += `Cells${' '.repeat(12)}${cellsValue.padStart(10)}\n`;
+            
+            // 添加Cell Cap数据
+            const cValue = document.getElementById('report-C').textContent;
+            const cminValue = document.getElementById('report-Cmin').textContent;
+            const cmaxValue = document.getElementById('report-Cmax').textContent;
+            reportContent += `Cell Cap${' '.repeat(9)}${cValue.padStart(8)} ${cminValue.padStart(8)} ${cmaxValue.padStart(8)} mAh\n`;
+            
+            // 添加Load数据
+            const lValue = document.getElementById('report-L').textContent;
+            const lminValue = document.getElementById('report-Lmin').textContent;
+            const lmaxValue = document.getElementById('report-Lmax').textContent;
+            reportContent += `Load${' '.repeat(13)}${lValue.padStart(8)} ${lminValue.padStart(8)} ${lmaxValue.padStart(8)} W\n`;
+            
+            // 添加Lx数据
+            const loadRows = document.querySelectorAll('.report-load-rows .report-row');
+            loadRows.forEach(row => {
+                const label = row.querySelector('.report-label').textContent;
+                const values = row.querySelectorAll('.report-value');
+                const value1 = values[0].textContent;
+                const value2 = values[1].textContent;
+                const value3 = values[2].textContent;
+                reportContent += `${label}${' '.repeat(15 - label.length)}${value1.padStart(8)} ${value2.padStart(8)} ${value3.padStart(8)}\n`;
+            });
+            
+            // 添加Run Time数据
+            const tValue = document.getElementById('report-T').textContent;
+            const tminValue = document.getElementById('report-Tmin').textContent;
+            const tmaxValue = document.getElementById('report-Tmax').textContent;
+            reportContent += `${'='.repeat(40)}\n`;
+            reportContent += `Run Time${' '.repeat(9)}${tValue.padStart(8)} ${tminValue.padStart(8)} ${tmaxValue.padStart(8)} Min`;
+            
+            // 拷贝到剪贴板
+            navigator.clipboard.writeText(reportContent).then(() => {
+                // 改变背景颜色为深绿
+                const originalColor = reportCard.style.backgroundColor;
+                reportCard.style.backgroundColor = '#4CAF50';
+                
+                // 0.25秒后恢复原背景颜色
+                setTimeout(() => {
+                    reportCard.style.backgroundColor = originalColor;
+                }, 250);
+            }).catch(err => {
+                console.error('无法拷贝内容:', err);
+            });
+        }
+        
+        // 输入验证函数
+        function validateInput(input) {
+            let value = input.value;
+            
+            // 移除非数字和小数点的字符
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // 确保只有一个小数点
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // 限制总长度最多4位（包括小数点）
+            if (value.length > 4) {
+                value = value.substring(0, 4);
+                // 确保截取后仍然是有效的数字格式
+                const trimmedParts = value.split('.');
+                if (trimmedParts.length > 2) {
+                    value = trimmedParts[0] + '.' + trimmedParts.slice(1).join('');
+                }
+            }
+            
+            // 限制小数部分最多1位
+            if (parts[1] && parts[1].length > 1) {
+                parts[1] = parts[1].substring(0, 1);
+                value = parts.join('.');
+            }
+            
+            input.value = value;
+        }
+        
+        // LOAD卡片组逻辑
+        let cardGroupLOAD;
+        let loadCardCount = 0;
+        const maxLoadCards = 5; // X=4, 所以X+1=5
+        
+        // 页面加载初始化
+        function initApp() {
+            // 初始化cardGroupLOAD变量
+            cardGroupLOAD = document.getElementById('card-group-LOAD');
+            generateTimestamp();
+            adjustSubscreenHeight();
+            setupButtonListeners();
+            initCardFunctions();
+            initLoadCardGroup();
+        }
+        
+        // 窗口大小变化监听
+        window.addEventListener('resize', adjustSubscreenHeight);
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', initApp);
+        
+        // 输入验证函数
+        function validateInput(input) {
+            // 移除所有非数字和小数点的字符
+            let value = input.value.replace(/[^0-9.]/g, '');
+            
+            // 确保只有一个小数点
+            const decimalPoints = value.split('.').length - 1;
+            if (decimalPoints > 1) {
+                value = value.slice(0, value.lastIndexOf('.'));
+            }
+            
+            // 限制小数位数
+            if (value.includes('.')) {
+                const parts = value.split('.');
+                if (parts[1].length > 1) {
+                    value = parts[0] + '.' + parts[1].substring(0, 1);
+                }
+            }
+            
+            // 限制总长度
+            if (input.id === 'N') {
+                // N输入框限制1位数字
+                value = value.substring(0, 1);
+            } else if (['C', 'Cmin', 'Cmax'].includes(input.id)) {
+                // C、Cmin、Cmax输入框限制4位（含小数点）
+                value = value.substring(0, 4);
+            }
+            
+            input.value = value;
+        }
+        
+        // 初始化输入验证
+        function initInputValidation() {
+            const inputs = document.querySelectorAll('.variable-input');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    validateInput(input);
+                });
+            });
+        }
+        
+        // 输入验证函数
+        function validateInput(input) {
+            // 移除所有非数字和小数点的字符
+            let value = input.value.replace(/[^0-9.]/g, '');
+            
+            // 确保只有一个小数点
+            const decimalPoints = value.split('.').length - 1;
+            if (decimalPoints > 1) {
+                value = value.slice(0, value.lastIndexOf('.'));
+            }
+            
+            // 限制小数位数
+            if (value.includes('.')) {
+                const parts = value.split('.');
+                if (parts[1].length > 1) {
+                    value = parts[0] + '.' + parts[1].substring(0, 1);
+                }
+            }
+            
+            // 限制总长度
+            if (input.id === 'N') {
+                // N输入框限制1位数字
+                value = value.substring(0, 1);
+            } else if (['C', 'Cmin', 'Cmax'].includes(input.id)) {
+                // C、Cmin、Cmax输入框限制4位（含小数点）
+                value = value.substring(0, 4);
+            }
+            
+            input.value = value;
+        }
+        
+        // 初始化输入验证
+        // LOAD卡片组逻辑
+        let loadCardCount = 0;
+        const maxLoadCards = 5; // X=4, 所以X+1=5
+        
+        // 计算LOAD卡片组小结值
+        function calculateLoadSummary() {
+            let sumL = 0;
+            let sumLmin = 0;
+            let sumLmax = 0;
+            
+            if (cardGroupLOAD) {
+                // 遍历所有子卡片（排除小结卡片）
+                const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
+                cards.forEach(card => {
+                    // 获取L值
+                    const lInput = card.querySelector('.load-l-item input');
+                    if (lInput && lInput.value) {
+                        sumL += parseFloat(lInput.value) || 0;
+                    }
+                    
+                    // 获取Lmin值
+                    const lminInput = card.querySelector('.load-lmin-item input');
+                    if (lminInput && lminInput.value) {
+                        sumLmin += parseFloat(lminInput.value) || 0;
+                    }
+                    
+                    // 获取Lmax值
+                    const lmaxInput = card.querySelector('.load-lmax-item input');
+                    if (lmaxInput && lmaxInput.value) {
+                        sumLmax += parseFloat(lmaxInput.value) || 0;
+                    }
+                });
+            }
+            
+            // 更新小结卡片显示
+            document.getElementById('summary-L').textContent = sumL.toFixed(1);
+            document.getElementById('summary-Lmin').textContent = sumLmin.toFixed(1);
+            document.getElementById('summary-Lmax').textContent = sumLmax.toFixed(1);
+            
+            // 更新报告卡片
+            updateReportCard();
+        }
+        
+        // 创建LOAD子卡片
+        function createLoadCard(index) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.backgroundColor = '#FFCDD2';
+            card.dataset.index = index;
+            
+            card.innerHTML = `
+                <div class="card-content">
+                    <div class="card-body">
+                        <div class="variable-container">
+                            <div class="variable-item load-title">
+                                <h3>L${index}</h3>
+                            </div>
+                            <div class="variable-item load-l-item">
+                                <div class="input-with-unit">
+                                    <input type="text" class="variable-input" id="L${index}" placeholder="0.0" inputmode="decimal">
+                                </div>
+                            </div>
+                            <div class="variable-item load-lmin-item">
+                                <div class="input-with-unit">
+                                    <input type="text" class="variable-input" id="Lmin${index}" placeholder="0.0" inputmode="decimal">
+                                </div>
+                            </div>
+                            <div class="variable-item load-lmax-item">
+                                <div class="input-with-unit">
+                                    <input type="text" class="variable-input" id="Lmax${index}" placeholder="0.0" inputmode="decimal">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-buttons">
+                    <button class="card-button minus">-</button>
+                    <button class="card-button plus">+</button>
+                </div>
+            `;
+            
+            // 绑定输入事件
+            const lInput = card.querySelector('.load-l-item input');
+            const lminInput = card.querySelector('.load-lmin-item input');
+            const lmaxInput = card.querySelector('.load-lmax-item input');
+            
+            // 为输入框添加输入事件（用于实时更新报告卡片）
+            [lInput, lminInput, lmaxInput].forEach(input => {
+                input.addEventListener('input', (e) => {
+                    validateInput(e.target);
+                    updateReportCard();
+                });
+                
+                input.addEventListener('blur', calculateLoadSummary);
+            });
+            
+            // 为输入框添加change事件（用于范围检查）
+            [lInput, lminInput, lmaxInput].forEach(input => {
+                input.addEventListener('change', function() {
+                    const value = parseFloat(this.value) || 0;
+                    
+                    // 检查是否是初始状态（除了当前输入框外，其他两个都是0或空）
+                    let isInitialState = false;
+                    if (this === lInput) {
+                        isInitialState = (lminInput.value === '' || parseFloat(lminInput.value) === 0) && 
+                                        (lmaxInput.value === '' || parseFloat(lmaxInput.value) === 0);
+                    } else if (this === lminInput) {
+                        isInitialState = (lInput.value === '' || parseFloat(lInput.value) === 0) && 
+                                        (lmaxInput.value === '' || parseFloat(lmaxInput.value) === 0);
+                    } else if (this === lmaxInput) {
+                        isInitialState = (lInput.value === '' || parseFloat(lInput.value) === 0) && 
+                                        (lminInput.value === '' || parseFloat(lminInput.value) === 0);
+                    }
+                    
+                    if (isInitialState && value > 0) {
+                        // 初始状态，用户第一次输入值，将值赋给其他两个参数
+                        if (this === lInput) {
+                            lminInput.value = this.value;
+                            lmaxInput.value = this.value;
+                        } else if (this === lminInput) {
+                            lInput.value = this.value;
+                            lmaxInput.value = this.value;
+                        } else if (this === lmaxInput) {
+                            lInput.value = this.value;
+                            lminInput.value = this.value;
+                        }
+                    } else if (value > 0) {
+                        // 非初始状态，进行范围检查
+                        if (this === lInput) {
+                            // L不能小于Lmin，不能大于Lmax
+                            const lmin = parseFloat(lminInput.value) || 0;
+                            const lmax = parseFloat(lmaxInput.value) || 0;
+                            if (value < lmin) {
+                                this.value = lminInput.value;
+                            } else if (value > lmax) {
+                                this.value = lmaxInput.value;
+                            }
+                        } else if (this === lminInput) {
+                            // Lmin不能大于L和Lmax
+                            const l = parseFloat(lInput.value) || 0;
+                            const lmax = parseFloat(lmaxInput.value) || 0;
+                            if (value > l) {
+                                this.value = lInput.value;
+                            } else if (value > lmax) {
+                                this.value = lmaxInput.value;
+                            }
+                        } else if (this === lmaxInput) {
+                            // Lmax不能小于L和Lmin
+                            const l = parseFloat(lInput.value) || 0;
+                            const lmin = parseFloat(lminInput.value) || 0;
+                            if (value < l) {
+                                this.value = lInput.value;
+                            } else if (value < lmin) {
+                                this.value = lminInput.value;
+                            }
+                        }
+                    }
+                    
+                    // 更新报告卡片和小结值
+                    updateReportCard();
+                    calculateLoadSummary();
+                });
+            });
+            
+            return card;
+        }
+        
+        // 重新索引LOAD卡片
+        function reindexLoadCards() {
+            if (cardGroupLOAD) {
+                const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
+                cards.forEach((card, i) => {
+                    // 更新索引
+                    card.dataset.index = i;
+                    
+                    // 更新标题
+                    const title = card.querySelector('.load-title h3');
+                    if (title) {
+                        title.textContent = `L${i}`;
+                    }
+                    
+                    // 更新输入框ID
+                    const lInput = card.querySelector('.load-l-item input');
+                    if (lInput) {
+                        lInput.id = `L${i}`;
+                    }
+                    const lminInput = card.querySelector('.load-lmin-item input');
+                    if (lminInput) {
+                        lminInput.id = `Lmin${i}`;
+                    }
+                    const lmaxInput = card.querySelector('.load-lmax-item input');
+                    if (lmaxInput) {
+                        lmaxInput.id = `Lmax${i}`;
+                    }
+                    
+                    // 移除旧的事件监听器
+                    const minusBtn = card.querySelector('.minus');
+                    const plusBtn = card.querySelector('.plus');
+                    
+                    // 移除所有事件监听器
+                    const newMinusBtn = minusBtn.cloneNode(true);
+                    const newPlusBtn = plusBtn.cloneNode(true);
+                    minusBtn.parentNode.replaceChild(newMinusBtn, minusBtn);
+                    plusBtn.parentNode.replaceChild(newPlusBtn, plusBtn);
+                    
+                    // 绑定新的事件监听器
+                    newMinusBtn.addEventListener('click', () => {
+                        removeLoadCard(i);
+                    });
+                    
+                    newPlusBtn.addEventListener('click', () => {
+                        addLoadCard(i);
+                    });
+                });
+                
+                // 更新按钮显示
+                updateLoadButtons();
+            }
+        }
+        
+        // 添加LOAD卡片
+        function addLoadCard(index) {
+            if (cardGroupLOAD && loadCardCount < maxLoadCards) {
+                // 创建新卡片
+                const newCard = createLoadCard(index + 1);
+                
+                // 找到当前卡片并在其后插入新卡片
+                const currentCard = cardGroupLOAD.querySelector(`.card[data-index="${index}"]`);
+                if (currentCard) {
+                    currentCard.after(newCard);
+                } else {
+                    cardGroupLOAD.appendChild(newCard);
+                }
+                
+                // 增加卡片计数
+                loadCardCount++;
+                
+                // 重新索引所有卡片
+                reindexLoadCards();
+                
+                // 更新报告卡片
+                updateReportCard();
+            }
+        }
+        
+        // 删除LOAD卡片
+        function removeLoadCard(index) {
+            if (cardGroupLOAD && loadCardCount > 1) {
+                // 找到要删除的卡片
+                const card = cardGroupLOAD.querySelector(`.card[data-index="${index}"]`);
+                if (card) {
+                    // 删除卡片
+                    card.remove();
+                    
+                    // 减少卡片计数
+                    loadCardCount--;
+                    
+                    // 重新索引所有卡片
+                    reindexLoadCards();
+                    
+                    // 重新计算小结
+                    calculateLoadSummary();
+                    
+                    // 更新报告卡片
+                    updateReportCard();
+                }
+            }
+        }
+        
+        // 更新LOAD卡片按钮显示
+        function updateLoadButtons() {
+            if (cardGroupLOAD) {
+                const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
+                cards.forEach((card, index) => {
+                    const minusBtn = card.querySelector('.minus');
+                    const plusBtn = card.querySelector('.plus');
+                    
+                    if (index === 0) {
+                        // 第一个卡片只显示+按钮
+                        minusBtn.style.display = 'none';
+                        plusBtn.style.display = 'flex';
+                    } else if (index === loadCardCount - 1 && loadCardCount === maxLoadCards) {
+                        // 当卡片数量达到最大值时，最后一个卡片只显示-按钮
+                        minusBtn.style.display = 'flex';
+                        plusBtn.style.display = 'none';
+                    } else {
+                        // 其他卡片显示两个按钮
+                        minusBtn.style.display = 'flex';
+                        plusBtn.style.display = 'flex';
+                    }
+                });
+            }
+        }
+        
+        // 初始化LOAD卡片组
+        function initLoadCardGroup() {
+            if (cardGroupLOAD) {
+                // 清空现有子卡片（保留小结卡片）
+                const existingCards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
+                existingCards.forEach(card => card.remove());
+                
+                // 初始化卡片数量
+                loadCardCount = 1;
+                
+                // 创建第一个卡片
+                const firstCard = createLoadCard(0);
+                cardGroupLOAD.appendChild(firstCard);
+                
+                // 绑定第一个卡片的按钮事件
+                const minusBtn = firstCard.querySelector('.minus');
+                const plusBtn = firstCard.querySelector('.plus');
+                
+                minusBtn.style.display = 'none';
+                
+                plusBtn.addEventListener('click', () => {
+                    addLoadCard(0);
+                });
+                
+                // 初始化小结卡片
+                calculateLoadSummary();
+            }
+        }
+        
+        // 更新报告卡片
+        function updateReportCard() {
+            // 更新N值
+            const nInput = document.getElementById('N');
+            const reportN = document.getElementById('report-N');
+            reportN.textContent = nInput.value || '0';
+            
+            // 更新C、Cmin、Cmax值
+            const cInput = document.getElementById('C');
+            const cminInput = document.getElementById('Cmin');
+            const cmaxInput = document.getElementById('Cmax');
+            document.getElementById('report-C').textContent = cInput.value || '0.0';
+            document.getElementById('report-Cmin').textContent = cminInput.value || '0.0';
+            document.getElementById('report-Cmax').textContent = cmaxInput.value || '0.0';
+            
+            // 更新L、Lmin、Lmax值（从LOAD小结卡片获取）
+            const summaryL = document.getElementById('summary-L');
+            const summaryLmin = document.getElementById('summary-Lmin');
+            const summaryLmax = document.getElementById('summary-Lmax');
+            document.getElementById('report-L').textContent = summaryL.textContent;
+            document.getElementById('report-Lmin').textContent = summaryLmin.textContent;
+            document.getElementById('report-Lmax').textContent = summaryLmax.textContent;
+            
+            // 计算并更新I、Imin、Imax值
+            const N = parseInt(nInput.value) || 0;
+            const L = parseFloat(summaryL.textContent) || 0;
+            const Lmin = parseFloat(summaryLmin.textContent) || 0;
+            const Lmax = parseFloat(summaryLmax.textContent) || 0;
+            const batteryVoltage = 3.7; // 锂电池标称电压
+            
+            let I = 0;
+            let Imin = 0;
+            let Imax = 0;
+            
+            if (N > 0) {
+                const totalVoltage = N * batteryVoltage;
+                if (totalVoltage > 0) {
+                    I = L / totalVoltage;
+                    Imin = Lmin / totalVoltage;
+                    Imax = Lmax / totalVoltage;
+                }
+            }
+            
+            document.getElementById('report-I').textContent = I.toFixed(1);
+            document.getElementById('report-Imin').textContent = Imin.toFixed(1);
+            document.getElementById('report-Imax').textContent = Imax.toFixed(1);
+            
+            // 更新子卡片数据
+            const loadRowsContainer = document.getElementById('report-load-rows');
+            loadRowsContainer.innerHTML = '';
+            
+            if (cardGroupLOAD) {
+                const loadCards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
+                loadCards.forEach((card, index) => {
+                    const lInput = card.querySelector('.load-l-item input');
+                    const lminInput = card.querySelector('.load-lmin-item input');
+                    const lmaxInput = card.querySelector('.load-lmax-item input');
+                    
+                    const row = document.createElement('div');
+                    row.className = 'report-row';
+                    row.innerHTML = `
+                        <div class="report-label load-label">L${index}</div>
+                        <div class="report-values">
+                            <div class="report-value">${lInput.value || '0.0'}</div>
+                            <div class="report-value">${lminInput.value || '0.0'}</div>
+                            <div class="report-value">${lmaxInput.value || '0.0'}</div>
+                        </div>
+                    `;
+                    loadRowsContainer.appendChild(row);
+                });
+            }
+            
+            // 计算T、Tmin、Tmax值
+            calculateReportTimes();
+        }
+        
+        // 计算T、Tmin、Tmax值
+        function calculateReportTimes() {
+            // 获取N值
+            const nInput = document.getElementById('N');
+            const N = parseInt(nInput.value) || 0;
+            
+            // 获取C、Cmin、Cmax值
+            const cInput = document.getElementById('C');
+            const cminInput = document.getElementById('Cmin');
+            const cmaxInput = document.getElementById('Cmax');
+            const C = parseFloat(cInput.value) || 0;
+            const Cmin = parseFloat(cminInput.value) || 0;
+            const Cmax = parseFloat(cmaxInput.value) || 0;
+            
+            // 获取L、Lmin、Lmax值
+            const summaryL = document.getElementById('summary-L');
+            const summaryLmin = document.getElementById('summary-Lmin');
+            const summaryLmax = document.getElementById('summary-Lmax');
+            const L = parseFloat(summaryL.textContent) || 0;
+            const Lmin = parseFloat(summaryLmin.textContent) || 0;
+            const Lmax = parseFloat(summaryLmax.textContent) || 0;
+            
+            // 电池标称电压（锂电池通常为3.7V）
+            const batteryVoltage = 3.7;
+            
+            // 计算T、Tmin、Tmax
+            // 公式：运行时间（分钟） = (N * (C / 1000) * batteryVoltage) / L * 60
+            // 其中：
+            // N - 电池串联数量
+            // C - 电池容量（mAh），需要转换为Ah（除以1000）
+            // batteryVoltage - 电池标称电压（V）
+            // L - 负载功率（W）
+            // 60 - 转换为分钟
+            let T = 0;
+            let Tmin = 0;
+            let Tmax = 0;
+            
+            if (L > 0) {
+                T = (N * (C / 1000) * batteryVoltage) / L * 60;
+            }
+            
+            if (Lmax > 0) {
+                Tmin = (N * (Cmin / 1000) * batteryVoltage) / Lmax * 60;
+            }
+            
+            if (Lmin > 0) {
+                Tmax = (N * (Cmax / 1000) * batteryVoltage) / Lmin * 60;
+            }
+            
+            // 更新显示
+            document.getElementById('report-T').textContent = T.toFixed(1);
+            document.getElementById('report-Tmin').textContent = Tmin.toFixed(1);
+            document.getElementById('report-Tmax').textContent = Tmax.toFixed(1);
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            initApp();
+            initInputValidation();
+            initLoadCardGroup();
+            initReportCardMonitoring();
+            
+            // Service Worker注册
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

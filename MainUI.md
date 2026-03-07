@@ -2,7 +2,7 @@
 
 ## 1. 项目概述
 
-这是一个专为苹果手机设计的PWA（Progressive Web App）应用，用于计算电池运行时间。应用采用响应式设计，能够自动适配iPhone 14到17的所有屏幕尺寸。
+这是一个专为苹果手机设计的PWA（Progressive Web App）应用。应用采用响应式设计，能够自动适配iPhone 14到17的所有屏幕尺寸。
 
 ## 2. 页面结构
 
@@ -19,9 +19,8 @@
         <!-- 按键区 -->
         <div class="button-area">
             <div class="button">Calc</div>
-            <div class="button">DfTime</div>
-            <div class="button">DfCost</div>
-            <div class="button">DfLoad</div>
+            <div class="button">DfX</div>
+            <div class="button">Settings</div>
         </div>
         
         <!-- 子屏幕区域 -->
@@ -58,7 +57,7 @@
 - 字体权重：600
 
 #### 3.2.2 按键区 (`.button-area`)
-- 布局：水平Flex布局，四个按键平均分布
+- 布局：水平Flex布局，三个按键平均分布
 - 内边距：8px 16px
 - 按键间距：16px
 - 背景颜色：白色
@@ -161,9 +160,9 @@
 | 子屏幕文字 | #333333 | 深灰色 |
 | 注脚区文字 | #666666 | 深灰色 |
 | Calc子屏幕 | #FFCDD2 | 浅红 |
-| DfTime子屏幕 | #BBDEFB | 浅蓝 |
-| DfCost子屏幕 | #FFF3E0 | 浅黄 |
-| DfLoad子屏幕 | #E0E0E0 | 浅灰 |
+| DfX子屏幕 | #BBDEFB | 浅蓝 |
+| Settings子屏幕 | #FFF3E0 | 浅黄 |
+
 
 ## 6. 字体设置
 
@@ -222,9 +221,7 @@ if ('serviceWorker' in navigator) {
 
 ## 9. 时间戳功能
 
-- 使用localStorage存储时间戳，确保同一版本的应用时间戳保持固定
-- 时间戳格式：`年-月-日 时:分:秒`（中文格式）
-- 仅在首次加载时生成时间戳
+- 仅在代码更新时生成时间戳
 - 时间戳显示在注脚区
 
 ## 10. 下拉刷新功能
