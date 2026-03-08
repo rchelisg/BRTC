@@ -254,6 +254,101 @@
             font-weight: bold;
         }
         
+        /* 设置项样式 */
+        .settings-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .settings-section h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            flex-wrap: nowrap;
+        }
+        
+        .setting-item label:first-child {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            min-width: 120px;
+        }
+        
+        .radio-options {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: nowrap;
+            min-width: 200px;
+        }
+        
+        .radio-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .setting-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .setting-item select {
+            padding: 5px 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        /* Radio按钮组样式 */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .radio-group label:first-child {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        /* RESET按钮样式 */
+        .reset-button {
+            padding: 10px 30px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .reset-button:hover {
+            background-color: #d32f2f;
+        }
+        
         /* 主卡片PACK样式 */
         .pack-title {
             grid-column: 1;
@@ -705,7 +800,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v5.7</span>
+            Battery Run Time Calculator <span id="version">v7.5</span>
         </div>
         
         <!-- 按键区 -->
@@ -817,10 +912,36 @@
         <!-- Settings子屏幕 -->
         <div class="subscreen-area Settings" style="display: none;">
             <div class="card-container">
-                <!-- Settings子屏幕内容将在这里添加 -->
-                <div style="padding: 20px; text-align: center;">
-                    <h3>Settings 子屏幕</h3>
-                    <p>这里将添加全局设置相关的卡片</p>
+                <!-- Settings子屏幕内容 -->
+                <div style="padding: 20px;">
+                    <!-- 设置项 -->
+                    <div class="settings-section">
+                        <div class="setting-item">
+                            <label>Nominal Voltage</label>
+                            <div class="radio-options">
+                                <label><input type="radio" name="voltage" value="3.7" checked> 3.7V</label>
+                                <label style="margin-left: -60px;"><input type="radio" name="voltage" value="3.6"> 3.6V</label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label for="compensate-c" style="min-width: 150px;">Compensate C on Load</label>
+                            <input type="checkbox" id="compensate-c" checked style="position: relative; left: -105px;">
+                        </div>
+                        
+                        <div class="setting-item" id="cell-type-section">
+                            <label>Cell Type</label>
+                            <div class="radio-options">
+                                <label style="margin-right: -30px;"><input type="radio" name="cell-type" value="0" checked> Tabbed Cells</label>
+                                <label style="margin-right: -40px;"><input type="radio" name="cell-type" value="1"> Tabless Cells</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- RESET按钮 -->
+                    <div style="margin-top: 40px; text-align: center;">
+                        <button id="reset-button" class="reset-button">RESET</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1045,7 +1166,78 @@
             }
         }
         
-        // 为PACK卡片添加输入验证
+        // 初始化设置功能
+        function initSettingsFunctions() {
+            const resetButton = document.getElementById('reset-button');
+            const compensateCheckbox = document.getElementById('compensate-c');
+            const cellTypeSection = document.getElementById('cell-type-section');
+            
+            // 全局变量
+            window.V = 3.7; // 默认3.7V
+            window.Comp = 1; // 默认1（on）
+            window.CellType = 0; // 默认0（tabbed cells）
+            
+            // 处理Compensate C on Load复选框变化
+            if (compensateCheckbox) {
+                compensateCheckbox.addEventListener('change', function() {
+                    window.Comp = this.checked ? 1 : 0;
+                    
+                    // 根据Comp值显示或隐藏电池类型设置
+                    if (cellTypeSection) {
+                        if (window.Comp === 1) {
+                            cellTypeSection.style.display = 'flex';
+                        } else {
+                            cellTypeSection.style.display = 'none';
+                        }
+                    }
+                });
+            }
+            
+            // 处理电压单选按钮变化
+            const voltageRadios = document.querySelectorAll('input[name="voltage"]');
+            voltageRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    window.V = parseFloat(this.value);
+                });
+            });
+            
+            // 处理电池类型单选按钮变化
+            const cellTypeRadios = document.querySelectorAll('input[name="cell-type"]');
+            cellTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    window.CellType = parseInt(this.value);
+                });
+            });
+            
+            // 处理RESET按钮点击
+            if (resetButton) {
+                resetButton.addEventListener('click', function() {
+                    // 显示确认对话框
+                    if (confirm('Are you sure you want to reset all settings to default values?')) {
+                        // 恢复默认设置
+                        document.querySelector('input[name="voltage"][value="3.7"]').checked = true;
+                        document.getElementById('compensate-c').checked = true;
+                        document.querySelector('input[name="cell-type"][value="0"]').checked = true;
+                        
+                        // 更新全局变量
+                        window.V = 3.7;
+                        window.Comp = 1;
+                        window.CellType = 0;
+                        
+                        // 显示电池类型设置
+                        if (cellTypeSection) {
+                            cellTypeSection.style.display = 'flex';
+                        }
+                        
+                        // 显示重置成功提示
+                        alert('Settings have been reset to default values');
+                    }
+                    // 如果用户点击Cancel，则不做任何操作
+                });
+            }
+        }
+        
+        // 初始化卡片功能
         function initCardFunctions() {
             const NInput = document.getElementById('N');
             const CInput = document.getElementById('C');
@@ -1692,6 +1884,7 @@
             setupButtonListeners();
             initCardGroupLOAD();
             initCardFunctions();
+            initSettingsFunctions();
             initCalcButtonLongPress();
             
             // 添加初始的LOAD子卡片
