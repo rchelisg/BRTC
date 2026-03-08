@@ -698,7 +698,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v3.9</span>
+            Battery Run Time Calculator <span id="version">v4.9</span>
         </div>
         
         <!-- 按键区 -->
@@ -865,6 +865,160 @@
             cardGroupLOAD = document.getElementById('card-group-LOAD');
         }
         
+
+        
+        // 重置LOAD卡片组为初始状态
+        function resetLoadCards() {
+            if (!cardGroupLOAD) return;
+            
+            const cards = cardGroupLOAD.querySelectorAll('.card:not(.summary-card)');
+            cards.forEach(card => {
+                // 标记为初始状态
+                card.dataset.initialState = 'true';
+                
+                // 清空所有输入框
+                const inputs = card.querySelectorAll('input[type="number"]');
+                inputs.forEach(input => {
+                    input.value = '';
+                });
+            });
+            
+            // 重新计算小结卡片
+            calculateLoadSummary();
+        }
+        
+        // 验证LOAD卡片输入值范围并添加初始赋值
+        function validateLoadInput(input, card) {
+            // 获取当前卡片的所有输入框
+            const lInput = card.querySelector('.load-l-item input');
+            const lminInput = card.querySelector('.load-lmin-item input');
+            const lmaxInput = card.querySelector('.load-lmax-item input');
+            
+            if (!lInput || !lminInput || !lmaxInput) return;
+            
+            // 检查是否处于初始状态
+            const isInitialState = card.dataset.initialState === 'true';
+            
+            // 保存输入前的值（使用input的defaultValue或之前存储的值）
+            // 为每个输入框添加data-prev-value属性来存储之前的值
+            if (!lInput.dataset.prevValue) {
+                lInput.dataset.prevValue = lInput.value;
+            }
+            if (!lminInput.dataset.prevValue) {
+                lminInput.dataset.prevValue = lminInput.value;
+            }
+            if (!lmaxInput.dataset.prevValue) {
+                lmaxInput.dataset.prevValue = lmaxInput.value;
+            }
+            
+            // 获取输入前的值
+            const prevL = parseFloat(lInput.dataset.prevValue) || 0;
+            const prevLmin = parseFloat(lminInput.dataset.prevValue) || 0;
+            const prevLmax = parseFloat(lmaxInput.dataset.prevValue) || 0;
+            
+            // 获取当前输入值
+            const currentL = parseFloat(lInput.value) || 0;
+            const currentLmin = parseFloat(lminInput.value) || 0;
+            const currentLmax = parseFloat(lmaxInput.value) || 0;
+            
+            // 检查是否有输入值
+            if (currentL > 0 || currentLmin > 0 || currentLmax > 0) {
+                if (isInitialState) {
+                    // 初始状态：找到非零值并赋给其他参数
+                    let validValue = 0;
+                    if (currentL > 0) {
+                        validValue = currentL;
+                    } else if (currentLmin > 0) {
+                        validValue = currentLmin;
+                    } else if (currentLmax > 0) {
+                        validValue = currentLmax;
+                    }
+                    
+                    // 检查值是否在0-999之间
+                    if (validValue >= 0 && validValue <= 999) {
+                        // 将值赋给所有参数
+                        lInput.value = validValue;
+                        lminInput.value = validValue;
+                        lmaxInput.value = validValue;
+                        // 更新存储的之前值
+                        lInput.dataset.prevValue = validValue;
+                        lminInput.dataset.prevValue = validValue;
+                        lmaxInput.dataset.prevValue = validValue;
+                        // 标记为非初始状态
+                        card.dataset.initialState = 'false';
+                    }
+                } else {
+                    // 非初始状态：检查输入值是否在合理范围内，并验证逻辑关系
+                    let isValid = true;
+                    
+                    // 检查Lmin值
+                    if (input === lminInput) {
+                        // 检查值是否在0-999之间
+                        if (currentLmin < 0 || currentLmin > 999) {
+                            isValid = false;
+                        } else {
+                            // 验证 Lmin <= L
+                            if (currentLmin > currentL) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (!isValid) {
+                            lminInput.value = prevLmin;
+                        } else {
+                            // 更新存储的之前值
+                            lminInput.dataset.prevValue = currentLmin;
+                        }
+                    }
+                    
+                    // 检查Lmax值
+                    if (input === lmaxInput) {
+                        // 检查值是否在0-999之间
+                        if (currentLmax < 0 || currentLmax > 999) {
+                            isValid = false;
+                        } else {
+                            // 验证 L <= Lmax
+                            if (currentL > currentLmax) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (!isValid) {
+                            lmaxInput.value = prevLmax;
+                        } else {
+                            // 更新存储的之前值
+                            lmaxInput.dataset.prevValue = currentLmax;
+                        }
+                    }
+                    
+                    // 检查L值
+                    if (input === lInput) {
+                        // 检查值是否在0-999之间
+                        if (currentL < 0 || currentL > 999) {
+                            isValid = false;
+                        } else {
+                            // 验证 Lmin <= L
+                            if (currentLmin > currentL) {
+                                isValid = false;
+                            } else {
+                                // 验证 L <= Lmax
+                                if (currentL > currentLmax) {
+                                    isValid = false;
+                                }
+                            }
+                        }
+                        
+                        if (!isValid) {
+                            lInput.value = prevL;
+                        } else {
+                            // 更新存储的之前值
+                            lInput.dataset.prevValue = currentL;
+                        }
+                    }
+                }
+            }
+        }
+        
         // 为PACK卡片添加输入验证
         function initCardFunctions() {
             const NInput = document.getElementById('N');
@@ -996,6 +1150,7 @@
             const newCard = document.createElement('div');
             newCard.className = 'card';
             newCard.style.backgroundColor = '#FFCDD2';
+            newCard.dataset.initialState = 'true'; // 标记为初始状态
             // 根据卡片位置决定按钮显示
             let buttonsHTML = '';
             if (cardCount === 0) {
@@ -1086,10 +1241,13 @@
                 });
             }
             
-            // 为输入框添加事件监听器，自动计算小结卡片
+            // 为输入框添加事件监听器，自动计算小结卡片并验证输入值
             const inputs = newCard.querySelectorAll('input[type="number"]');
             inputs.forEach(input => {
-                input.addEventListener('blur', calculateLoadSummary);
+                input.addEventListener('blur', function() {
+                    validateLoadInput(this, newCard);
+                    calculateLoadSummary();
+                });
             });
         }
         
@@ -1244,14 +1402,17 @@
                         });
                     }
                     
-                    // 为输入框添加事件监听器，自动计算小结卡片
+                    // 为输入框添加事件监听器，自动计算小结卡片并验证输入值
                     const inputs = card.querySelectorAll('input[type="number"]');
                     inputs.forEach(input => {
                         // 移除可能存在的旧监听器，避免重复绑定
                         input.removeEventListener('input', calculateLoadSummary);
                         input.removeEventListener('blur', calculateLoadSummary);
                         // 添加新监听器
-                        input.addEventListener('blur', calculateLoadSummary);
+                        input.addEventListener('blur', function() {
+                            validateLoadInput(this, card);
+                            calculateLoadSummary();
+                        });
                     });
                 }
             });
@@ -1332,6 +1493,8 @@
                     // 显示对应的子屏幕
                     if (index === 0) {
                         document.querySelector('.subscreen-area.Calc').style.display = 'block';
+                        // 重置LOAD卡片组为初始状态
+                        resetLoadCards();
                     } else if (index === 1) {
                         document.querySelector('.subscreen-area.DfX').style.display = 'block';
                     } else if (index === 2) {
