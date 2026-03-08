@@ -698,7 +698,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v4.9</span>
+            Battery Run Time Calculator <span id="version">v5.1</span>
         </div>
         
         <!-- 按键区 -->
@@ -717,7 +717,7 @@
         <div class="subscreen-area Calc" style="display: block;">
             <div class="card-container">
                 <!-- 主卡片：PACK -->
-                <div class="card" data-type="pack" style="background-color: #BBDEFB;">
+                <div class="card" id="pack-card" data-type="pack" style="background-color: #BBDEFB;">
                     <div class="card-content">
                         <div class="card-body">
                             <div class="variable-container">
@@ -1025,6 +1025,7 @@
             const CInput = document.getElementById('C');
             const CminInput = document.getElementById('Cmin');
             const CmaxInput = document.getElementById('Cmax');
+            const packCard = document.getElementById('pack-card');
             
             // 为N输入框添加输入事件
             if (NInput) {
@@ -1050,6 +1051,11 @@
                 });
             }
             
+            // 设置PACK卡片的初始状态
+            if (packCard) {
+                packCard.dataset.initialState = 'true';
+            }
+            
             // 为C输入框添加输入事件
             if (CInput) {
                 CInput.addEventListener('input', function() {
@@ -1064,17 +1070,14 @@
                         value = parts[0] + '.' + parts[1].slice(0, 2);
                     }
                     this.value = value;
-                    
-                    // 范围检查
-                    if (value && (parseFloat(value) < 1 || parseFloat(value) > 99999)) {
-                        this.value = '';
-                    }
                 });
                 
                 // 为C输入框添加失焦事件
                 CInput.addEventListener('blur', function() {
                     if (!this.value) {
                         this.value = '3000';
+                    } else {
+                        validatePackInput(this, packCard);
                     }
                 });
             }
@@ -1093,17 +1096,14 @@
                         value = parts[0] + '.' + parts[1].slice(0, 2);
                     }
                     this.value = value;
-                    
-                    // 范围检查
-                    if (value && (parseFloat(value) < 1 || parseFloat(value) > 99999)) {
-                        this.value = '';
-                    }
                 });
                 
                 // 为Cmin输入框添加失焦事件
                 CminInput.addEventListener('blur', function() {
                     if (!this.value) {
                         this.value = '3000';
+                    } else {
+                        validatePackInput(this, packCard);
                     }
                 });
             }
@@ -1122,19 +1122,155 @@
                         value = parts[0] + '.' + parts[1].slice(0, 2);
                     }
                     this.value = value;
-                    
-                    // 范围检查
-                    if (value && (parseFloat(value) < 1 || parseFloat(value) > 99999)) {
-                        this.value = '';
-                    }
                 });
                 
                 // 为Cmax输入框添加失焦事件
                 CmaxInput.addEventListener('blur', function() {
                     if (!this.value) {
                         this.value = '3000';
+                    } else {
+                        validatePackInput(this, packCard);
                     }
                 });
+            }
+        }
+        
+        // 验证PACK卡片输入值范围并添加初始赋值
+        function validatePackInput(input, card) {
+            // 获取当前卡片的所有输入框
+            const CInput = document.getElementById('C');
+            const CminInput = document.getElementById('Cmin');
+            const CmaxInput = document.getElementById('Cmax');
+            
+            if (!CInput || !CminInput || !CmaxInput) return;
+            
+            // 检查是否处于初始状态
+            const isInitialState = card.dataset.initialState === 'true';
+            
+            // 保存输入前的值（使用input的defaultValue或之前存储的值）
+            // 为每个输入框添加data-prev-value属性来存储之前的值
+            if (!CInput.dataset.prevValue) {
+                CInput.dataset.prevValue = CInput.value;
+            }
+            if (!CminInput.dataset.prevValue) {
+                CminInput.dataset.prevValue = CminInput.value;
+            }
+            if (!CmaxInput.dataset.prevValue) {
+                CmaxInput.dataset.prevValue = CmaxInput.value;
+            }
+            
+            // 获取输入前的值
+            const prevC = parseFloat(CInput.dataset.prevValue) || 0;
+            const prevCmin = parseFloat(CminInput.dataset.prevValue) || 0;
+            const prevCmax = parseFloat(CmaxInput.dataset.prevValue) || 0;
+            
+            // 获取当前输入值
+            const currentC = parseFloat(CInput.value) || 0;
+            const currentCmin = parseFloat(CminInput.value) || 0;
+            const currentCmax = parseFloat(CmaxInput.value) || 0;
+            
+            // 检查是否有输入值
+            if (currentC > 0 || currentCmin > 0 || currentCmax > 0) {
+                if (isInitialState) {
+                    // 初始状态：找到非零值并赋给其他参数
+                    let validValue = 0;
+                    if (currentC > 0) {
+                        validValue = currentC;
+                    } else if (currentCmin > 0) {
+                        validValue = currentCmin;
+                    } else if (currentCmax > 0) {
+                        validValue = currentCmax;
+                    }
+                    
+                    // 检查值是否在100-9000之间
+                    if (validValue >= 100 && validValue <= 9000) {
+                        // 将值赋给所有参数
+                        CInput.value = validValue;
+                        CminInput.value = validValue;
+                        CmaxInput.value = validValue;
+                        // 更新存储的之前值
+                        CInput.dataset.prevValue = validValue;
+                        CminInput.dataset.prevValue = validValue;
+                        CmaxInput.dataset.prevValue = validValue;
+                        // 标记为非初始状态
+                        card.dataset.initialState = 'false';
+                    }
+                } else {
+                    // 非初始状态：检查输入值是否在合理范围内，并验证逻辑关系
+                    let isValid = true;
+                    
+                    // 检查Cmin值
+                    if (input === CminInput) {
+                        // 检查值是否在100-9000之间
+                        if (currentCmin < 100 || currentCmin > 9000) {
+                            isValid = false;
+                        } else {
+                            // 验证 Cmin <= C
+                            if (currentCmin > currentC) {
+                                isValid = false;
+                            }
+                            // 验证 Cmin <= Cmax
+                            if (currentCmin > currentCmax) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (!isValid) {
+                            CminInput.value = prevCmin;
+                        } else {
+                            // 更新存储的之前值
+                            CminInput.dataset.prevValue = currentCmin;
+                        }
+                    }
+                    
+                    // 检查Cmax值
+                    if (input === CmaxInput) {
+                        // 检查值是否在100-9000之间
+                        if (currentCmax < 100 || currentCmax > 9000) {
+                            isValid = false;
+                        } else {
+                            // 验证 C <= Cmax
+                            if (currentC > currentCmax) {
+                                isValid = false;
+                            }
+                            // 验证 Cmin <= Cmax
+                            if (currentCmin > currentCmax) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (!isValid) {
+                            CmaxInput.value = prevCmax;
+                        } else {
+                            // 更新存储的之前值
+                            CmaxInput.dataset.prevValue = currentCmax;
+                        }
+                    }
+                    
+                    // 检查C值
+                    if (input === CInput) {
+                        // 检查值是否在100-9000之间
+                        if (currentC < 100 || currentC > 9000) {
+                            isValid = false;
+                        } else {
+                            // 验证 Cmin <= C
+                            if (currentCmin > currentC) {
+                                isValid = false;
+                            }
+                            // 验证 C <= Cmax
+                            if (currentC > currentCmax) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (!isValid) {
+                            CInput.value = prevC;
+                        } else {
+                            // 更新存储的之前值
+                            CInput.dataset.prevValue = currentC;
+                        }
+                    }
+                }
             }
         }
         
