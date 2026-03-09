@@ -170,6 +170,12 @@
             align-items: center;
         }
         
+        /* 报告卡片的卡片主体 */
+        #report-card .card-body {
+            display: block;
+            padding: 15px;
+        }
+        
         /* 变量容器 */
         .variable-container {
             display: grid;
@@ -330,6 +336,123 @@
             font-size: 14px;
             color: #333;
             margin-bottom: 5px;
+        }
+        
+        /* 报告卡片样式 */
+        .report-header {
+            position: relative;
+        }
+        
+        .report-content {
+            width: 100%;
+        }
+        
+        .report-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            white-space: nowrap;
+        }
+        
+        /* 减小Lx行的行间距 */
+        .report-load-rows .report-row {
+            margin-bottom: 2px;
+        }
+        
+        /* 减小Load行和L0行之间的行间距 */
+        .report-load-rows {
+            margin-top: 2px;
+        }
+        
+        /* Lx行的文字颜色为浅灰色 */
+        .report-load-rows .report-label {
+            color: #999;
+        }
+        
+        .report-load-rows .report-value {
+            color: #999;
+        }
+        
+        /* 空白行样式 */
+        .report-blank-row {
+            height: 8px;
+        }
+        
+        .report-label {
+            width: 60px;
+            font-size: 12px;
+            color: #333;
+            text-align: right;
+        }
+        
+        /* Lx标签使用不同的颜色 */
+        .report-label.load-label {
+            color: #666;
+        }
+        
+        .report-values {
+            flex: 1;
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .report-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            width: 60px;
+            text-align: right;
+            margin-right: 20px;
+        }
+        
+        /* 为Cells行的数值添加特殊对齐 */
+        .report-row:first-child .report-values {
+            justify-content: flex-start;
+        }
+        
+        .report-row:first-child .report-value {
+            margin-left: 0;
+            text-align: right;
+        }
+        
+        .report-unit {
+            width: 40px;
+            font-size: 12px;
+            color: #666;
+            text-align: left;
+        }
+        
+        .report-header-row {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .report-header-row .report-values {
+            flex: 1;
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .report-header-row .report-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            width: 60px;
+            text-align: right;
+            margin-right: 20px;
+        }
+        
+        .report-time-row {
+            margin-top: 8px;
+        }
+        
+        .report-time-row .report-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
         }
         
         /* RESET按钮样式 */
@@ -800,7 +923,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v7.5</span>
+            Battery Run Time Calculator <span id="version">v8.2</span>
         </div>
         
         <!-- 按键区 -->
@@ -894,6 +1017,74 @@
                         </div>
                     </div>
                     <!-- 子卡片将通过JavaScript动态生成 -->
+                </div>
+                
+                <!-- 报告卡片：REPORT_TIME -->
+                <div class="card" data-type="report" id="report-card" style="background-color: #E8F5E8; position: relative;">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="report-header" style="width: 100%; text-align: left; margin-bottom: 15px; display: block; margin-top: -10px;">
+                                <h3 class="report-title" style="margin: 0; font-size: 16px; font-weight: 600; color: #333; display: inline-block;">Battery Run Time Calculator</h3>
+                            </div>
+                            <div class="report-icon copy-icon" onclick="copyReportCard()" style="position: absolute; top: 12px; right: 12px; cursor: pointer;">📄</div>
+                            <div class="report-content" style="width: 100%; display: block;">
+                                <div class="report-row">
+                                    <div class="report-label">Cells</div>
+                                    <div class="report-values">
+                                        <div class="report-value" id="report-N">0</div>
+                                    </div>
+                                </div>
+                                <div class="report-row">
+                                    <div class="report-label">Cell Cap</div>
+                                    <div class="report-values">
+                                        <div class="report-value" id="report-C">0.0</div>
+                                        <div class="report-value" id="report-Cmin">0.0</div>
+                                        <div class="report-value" id="report-Cmax">0.0</div>
+                                    </div>
+                                    <div class="report-unit">mAh</div>
+                                </div>
+                                <div class="report-row">
+                                    <div class="report-label">Current</div>
+                                    <div class="report-values">
+                                        <div class="report-value" id="report-I">0.0</div>
+                                        <div class="report-value" id="report-Imin">0.0</div>
+                                        <div class="report-value" id="report-Imax">0.0</div>
+                                    </div>
+                                    <div class="report-unit">A</div>
+                                </div>
+                                <div class="report-row">
+                                    <div class="report-label">Load</div>
+                                    <div class="report-values">
+                                        <div class="report-value" id="report-L">0.0</div>
+                                        <div class="report-value" id="report-Lmin">0.0</div>
+                                        <div class="report-value" id="report-Lmax">0.0</div>
+                                    </div>
+                                    <div class="report-unit">W</div>
+                                </div>
+                                <div class="report-load-rows" id="report-load-rows">
+                                    <!-- 子卡片数据将通过JavaScript动态生成 -->
+                                </div>
+                                <div class="report-blank-row"></div>
+                                <div class="report-header-row">
+                                    <div class="report-label"></div>
+                                    <div class="report-values">
+                                        <div class="report-value">Nom</div>
+                                        <div class="report-value">Min</div>
+                                        <div class="report-value">Max</div>
+                                    </div>
+                                </div>
+                                <div class="report-row report-time-row">
+                                    <div class="report-label">Run Time</div>
+                                    <div class="report-values">
+                                        <div class="report-value" id="report-T">0.0</div>
+                                        <div class="report-value" id="report-Tmin">0.0</div>
+                                        <div class="report-value" id="report-Tmax">0.0</div>
+                                    </div>
+                                    <div class="report-unit">Min</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
