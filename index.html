@@ -923,7 +923,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v11.12</span>
+            Battery Run Time Calculator <span id="version">v11.6</span>
         </div>
         
         <!-- 按键区 -->
@@ -1133,6 +1133,8 @@
                         <div>CL: <span id="debug-CL">0</span></div>
                         <div>CLmin: <span id="debug-CLmin">0</span></div>
                         <div>CLmax: <span id="debug-CLmax">0</span></div>
+                        <div>Cell Type: <span id="debug-cell-type">0</span></div>
+                        <div>Compensate C: <span id="debug-compensate-c">false</span></div>
                         <div>E: <span id="debug-E">0</span></div>
                         <div>Emin: <span id="debug-Emin">0</span></div>
                         <div>Emax: <span id="debug-Emax">0</span></div>
@@ -2173,81 +2175,111 @@
             console.log('CL:', CL);
             
             // 计算负载因子
-            const E = N * C * V / 1000;
-            const Emin = N * Cmin * V / 1000;
-            const Emax = N * Cmax * V / 1000;
+            let F = 1;
+            let Fmin = 1;
+            let Fmax = 1;
             
-            let F = 0;
-            let Fmin = 0;
-            let Fmax = 0;
+            // 检查是否启用负载补偿
+            const compensateC = document.getElementById('compensate-c').checked;
+            // 获取cell-type值
+            const cellTypeRadio = document.querySelector('input[name="cell-type"]:checked');
+            const cellType = cellTypeRadio ? parseInt(cellTypeRadio.value) === 1 : false;
             
-            if (summaryL > 0 && E > summaryL) {
-                F = 1 / (1 - (summaryL / E));
+            if (compensateC) {
+                if (cellType) {
+                    // tables cells
+                    F = Math.pow(0.2 / CL, 0.015);
+                    Fmin = Math.pow(0.2 / CLmin, 0.015);
+                    Fmax = Math.pow(0.2 / CLmax, 0.015);
+                } else {
+                    // tabbed cells
+                    F = Math.pow(0.2 / CL, 0.04);
+                    Fmin = Math.pow(0.2 / CLmin, 0.04);
+                    Fmax = Math.pow(0.2 / CLmax, 0.04);
+                }
+            } else {
+                // load compensation disabled
+                F = 1;
+                Fmin = 1;
+                Fmax = 1;
             }
-            if (summaryLmin > 0 && Emin > summaryLmin) {
-                Fmin = 1 / (1 - (summaryLmin / Emin));
-            }
-            if (summaryLmax > 0 && Emax > summaryLmax) {
-                Fmax = 1 / (1 - (summaryLmax / Emax));
-            }
+            
+            // 计算E、Emin、Emax（新公式）
+            const E = N * V * C * F / 1000;
+            const Emin = N * V * Cmin * Fmin / 1000;
+            const Emax = N * V * Cmax * Fmax / 1000;
             
             // 计算运行时间（分钟）
-            const T = summaryL > 0 ? (E * 60 / summaryL) * F : 0;
-            const Tmin = summaryLmin > 0 ? (Emin * 60 / summaryLmin) * Fmin : 0;
-            const Tmax = summaryLmax > 0 ? (Emax * 60 / summaryLmax) * Fmax : 0;
+            const T = summaryL > 0 ? (E / summaryL) * 60 : 0;
+            const Tmin = summaryLmax > 0 ? (Emin / summaryLmax) * 60 : 0;
+            const Tmax = summaryLmin > 0 ? (Emax / summaryLmin) * 60 : 0;
             
             // 更新report_time卡片的显示
-            document.getElementById('report-C').textContent = Math.round(C);
-            document.getElementById('report-Cmin').textContent = Math.round(Cmin);
-            document.getElementById('report-Cmax').textContent = Math.round(Cmax);
-            document.getElementById('report-N').textContent = N;
-            document.getElementById('report-V').textContent = V.toFixed(1);
-            document.getElementById('report-Ename').textContent = Ename.toFixed(1);
-            document.getElementById('report-L').textContent = summaryL.toFixed(1);
-            document.getElementById('report-Lmin').textContent = summaryLmin.toFixed(1);
-            document.getElementById('report-Lmax').textContent = summaryLmax.toFixed(1);
+            document.getElementById('report-C').textContent = formatNumber(C, Math.round);
+            document.getElementById('report-Cmin').textContent = formatNumber(Cmin, Math.round);
+            document.getElementById('report-Cmax').textContent = formatNumber(Cmax, Math.round);
+            document.getElementById('report-N').textContent = formatNumber(N, (n) => n);
+            document.getElementById('report-V').textContent = formatNumber(V, (n) => n.toFixed(1));
+            document.getElementById('report-Ename').textContent = formatNumber(Ename, (n) => n.toFixed(1));
+            document.getElementById('report-L').textContent = formatNumber(summaryL, (n) => n.toFixed(1));
+            document.getElementById('report-Lmin').textContent = formatNumber(summaryLmin, (n) => n.toFixed(1));
+            document.getElementById('report-Lmax').textContent = formatNumber(summaryLmax, (n) => n.toFixed(1));
             // Current显示格式：最多一位小数，如果小数点前是0则显示两位
-            document.getElementById('report-I').textContent = I < 1 ? I.toFixed(2) : I.toFixed(1);
-            document.getElementById('report-Imin').textContent = Imin < 1 ? Imin.toFixed(2) : Imin.toFixed(1);
-            document.getElementById('report-Imax').textContent = Imax < 1 ? Imax.toFixed(2) : Imax.toFixed(1);
-            document.getElementById('report-F').textContent = F.toFixed(1);
-            document.getElementById('report-Fmin').textContent = Fmin.toFixed(1);
-            document.getElementById('report-Fmax').textContent = Fmax.toFixed(1);
-            document.getElementById('report-E').textContent = E.toFixed(1);
-            document.getElementById('report-Emin').textContent = Emin.toFixed(1);
-            document.getElementById('report-Emax').textContent = Emax.toFixed(1);
-            document.getElementById('report-T').textContent = T.toFixed(1);
-            document.getElementById('report-Tmin').textContent = Tmin.toFixed(1);
-            document.getElementById('report-Tmax').textContent = Tmax.toFixed(1);
+            document.getElementById('report-I').textContent = formatNumber(I, (n) => n < 1 ? n.toFixed(2) : n.toFixed(1));
+            document.getElementById('report-Imin').textContent = formatNumber(Imin, (n) => n < 1 ? n.toFixed(2) : n.toFixed(1));
+            document.getElementById('report-Imax').textContent = formatNumber(Imax, (n) => n < 1 ? n.toFixed(2) : n.toFixed(1));
+            // F显示小数点后两位，不做四舍五入
+            document.getElementById('report-F').textContent = formatNumber(F, (n) => (Math.floor(n * 100) / 100).toFixed(2));
+            document.getElementById('report-Fmin').textContent = formatNumber(Fmin, (n) => (Math.floor(n * 100) / 100).toFixed(2));
+            document.getElementById('report-Fmax').textContent = formatNumber(Fmax, (n) => (Math.floor(n * 100) / 100).toFixed(2));
+            document.getElementById('report-E').textContent = formatNumber(E, (n) => n.toFixed(1));
+            document.getElementById('report-Emin').textContent = formatNumber(Emin, (n) => n.toFixed(1));
+            document.getElementById('report-Emax').textContent = formatNumber(Emax, (n) => n.toFixed(1));
+            document.getElementById('report-T').textContent = formatNumber(T, (n) => n.toFixed(1));
+            document.getElementById('report-Tmin').textContent = formatNumber(Tmin, (n) => n.toFixed(1));
+            document.getElementById('report-Tmax').textContent = formatNumber(Tmax, (n) => n.toFixed(1));
             
             // 更新调试窗口
             const debugWindow = document.getElementById('debug-window');
             if (debugWindow) {
-                document.getElementById('debug-N').textContent = N;
-                document.getElementById('debug-C').textContent = Math.round(C);
-                document.getElementById('debug-Cmin').textContent = Math.round(Cmin);
-                document.getElementById('debug-Cmax').textContent = Math.round(Cmax);
-                document.getElementById('debug-V').textContent = V.toFixed(1);
-                document.getElementById('debug-summary-L').textContent = summaryL.toFixed(1);
-                document.getElementById('debug-summary-Lmin').textContent = summaryLmin.toFixed(1);
-                document.getElementById('debug-summary-Lmax').textContent = summaryLmax.toFixed(1);
-                document.getElementById('debug-Ename').textContent = Ename.toFixed(1);
-                document.getElementById('debug-I').textContent = I < 1 ? I.toFixed(2) : I.toFixed(1);
-                document.getElementById('debug-Imin').textContent = Imin < 1 ? Imin.toFixed(2) : Imin.toFixed(1);
-                document.getElementById('debug-Imax').textContent = Imax < 1 ? Imax.toFixed(2) : Imax.toFixed(1);
-                document.getElementById('debug-CL').textContent = CL.toFixed(6);
-                document.getElementById('debug-CLmin').textContent = CLmin.toFixed(6);
-                document.getElementById('debug-CLmax').textContent = CLmax.toFixed(6);
-                document.getElementById('debug-E').textContent = E.toFixed(1);
-                document.getElementById('debug-Emin').textContent = Emin.toFixed(1);
-                document.getElementById('debug-Emax').textContent = Emax.toFixed(1);
-                document.getElementById('debug-F').textContent = F.toFixed(1);
-                document.getElementById('debug-Fmin').textContent = Fmin.toFixed(1);
-                document.getElementById('debug-Fmax').textContent = Fmax.toFixed(1);
-                document.getElementById('debug-T').textContent = T.toFixed(1);
-                document.getElementById('debug-Tmin').textContent = Tmin.toFixed(1);
-                document.getElementById('debug-Tmax').textContent = Tmax.toFixed(1);
+                document.getElementById('debug-N').textContent = formatNumber(N, (n) => n);
+                document.getElementById('debug-C').textContent = formatNumber(C, Math.round);
+                document.getElementById('debug-Cmin').textContent = formatNumber(Cmin, Math.round);
+                document.getElementById('debug-Cmax').textContent = formatNumber(Cmax, Math.round);
+                document.getElementById('debug-V').textContent = formatNumber(V, (n) => n.toFixed(1));
+                document.getElementById('debug-summary-L').textContent = formatNumber(summaryL, (n) => n.toFixed(1));
+                document.getElementById('debug-summary-Lmin').textContent = formatNumber(summaryLmin, (n) => n.toFixed(1));
+                document.getElementById('debug-summary-Lmax').textContent = formatNumber(summaryLmax, (n) => n.toFixed(1));
+                document.getElementById('debug-Ename').textContent = formatNumber(Ename, (n) => n.toFixed(1));
+                document.getElementById('debug-I').textContent = formatNumber(I, (n) => n < 1 ? n.toFixed(2) : n.toFixed(1));
+                document.getElementById('debug-Imin').textContent = formatNumber(Imin, (n) => n < 1 ? n.toFixed(2) : n.toFixed(1));
+                document.getElementById('debug-Imax').textContent = formatNumber(Imax, (n) => n < 1 ? n.toFixed(2) : n.toFixed(1));
+                document.getElementById('debug-CL').textContent = formatNumber(CL, (n) => n.toFixed(6));
+                document.getElementById('debug-CLmin').textContent = formatNumber(CLmin, (n) => n.toFixed(6));
+                document.getElementById('debug-CLmax').textContent = formatNumber(CLmax, (n) => n.toFixed(6));
+                document.getElementById('debug-cell-type').textContent = cellType ? '1 (Tabless)' : '0 (Tabbed)';
+                document.getElementById('debug-compensate-c').textContent = compensateC ? 'true' : 'false';
+                document.getElementById('debug-E').textContent = formatNumber(E, (n) => n.toFixed(1));
+                document.getElementById('debug-Emin').textContent = formatNumber(Emin, (n) => n.toFixed(1));
+                document.getElementById('debug-Emax').textContent = formatNumber(Emax, (n) => n.toFixed(1));
+                // F显示小数点后两位，不做四舍五入
+                document.getElementById('debug-F').textContent = formatNumber(F, (n) => (Math.floor(n * 100) / 100).toFixed(2));
+                document.getElementById('debug-Fmin').textContent = formatNumber(Fmin, (n) => (Math.floor(n * 100) / 100).toFixed(2));
+                document.getElementById('debug-Fmax').textContent = formatNumber(Fmax, (n) => (Math.floor(n * 100) / 100).toFixed(2));
+                document.getElementById('debug-T').textContent = formatNumber(T, (n) => n.toFixed(1));
+                document.getElementById('debug-Tmin').textContent = formatNumber(Tmin, (n) => n.toFixed(1));
+                document.getElementById('debug-Tmax').textContent = formatNumber(Tmax, (n) => n.toFixed(1));
             }
+        }
+        
+        // 检查数值是否合法的辅助函数
+        function isValidNumber(num) {
+            return !isNaN(num) && isFinite(num);
+        }
+        
+        // 格式化数值显示的函数
+        function formatNumber(num, formatter) {
+            return isValidNumber(num) ? formatter(num) : '-';
         }
         
         // 初始化report_time卡片的事件监听器
