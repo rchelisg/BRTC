@@ -923,7 +923,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v10.7</span>
+            Battery Run Time Calculator <span id="version">v11.12</span>
         </div>
         
         <!-- 按键区 -->
@@ -1108,6 +1108,40 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- 调试窗口（临时）-->
+                <div id="debug-window" style="position: fixed; bottom: 20px; right: 20px; width: 300px; max-height: 400px; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 15px; font-size: 10px; z-index: 9999; overflow-y: auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong style="color: #333; font-size: 10px;">调试窗口</strong>
+                        <button onclick="document.getElementById('debug-window').style.display = 'none';" style="background: none; border: none; font-size: 14px; cursor: pointer; color: #333;">✕</button>
+                    </div>
+                    <div id="debug-content" style="color: #333; line-height: 0.8; font-size: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                        <div>N: <span id="debug-N">0</span></div>
+                        <div>C: <span id="debug-C">0</span></div>
+                        <div>Cmin: <span id="debug-Cmin">0</span></div>
+                        <div>Cmax: <span id="debug-Cmax">0</span></div>
+                        <div>V: <span id="debug-V">0</span></div>
+                        <div>summary-L: <span id="debug-summary-L">0</span></div>
+                        <div>summary-Lmin: <span id="debug-summary-Lmin">0</span></div>
+                        <div>summary-Lmax: <span id="debug-summary-Lmax">0</span></div>
+                        <div>Ename: <span id="debug-Ename">0</span></div>
+                        <div>I: <span id="debug-I">0</span></div>
+                        <div>Imin: <span id="debug-Imin">0</span></div>
+                        <div>Imax: <span id="debug-Imax">0</span></div>
+                        <div>CL: <span id="debug-CL">0</span></div>
+                        <div>CLmin: <span id="debug-CLmin">0</span></div>
+                        <div>CLmax: <span id="debug-CLmax">0</span></div>
+                        <div>E: <span id="debug-E">0</span></div>
+                        <div>Emin: <span id="debug-Emin">0</span></div>
+                        <div>Emax: <span id="debug-Emax">0</span></div>
+                        <div>F: <span id="debug-F">0</span></div>
+                        <div>Fmin: <span id="debug-Fmin">0</span></div>
+                        <div>Fmax: <span id="debug-Fmax">0</span></div>
+                        <div>T: <span id="debug-T">0</span></div>
+                        <div>Tmin: <span id="debug-Tmin">0</span></div>
+                        <div>Tmax: <span id="debug-Tmax">0</span></div>
                     </div>
                 </div>
             </div>
@@ -1894,6 +1928,9 @@
             if (summaryLmax) {
                 summaryLmax.textContent = totalLmax.toFixed(1);
             }
+            
+            // 手动调用updateReportCard函数，确保I和CL变量被计算
+            updateReportCard();
         }
         
         // 从LOAD卡片组移除子卡片
@@ -2092,6 +2129,162 @@
             });
         }
         
+        // 计算并更新report_time卡片的所有参数
+        function updateReportCard() {
+            // 获取PACK卡片参数
+            const NInput = document.getElementById('N');
+            const CInput = document.getElementById('C');
+            const CminInput = document.getElementById('Cmin');
+            const CmaxInput = document.getElementById('Cmax');
+            
+            const N = NInput.value !== '' ? parseInt(NInput.value) : 0;
+            const C = CInput.value !== '' ? parseFloat(CInput.value) : 0;
+            const Cmin = CminInput.value !== '' ? parseFloat(CminInput.value) : 0;
+            const Cmax = CmaxInput.value !== '' ? parseFloat(CmaxInput.value) : 0;
+            
+            // 获取Settings参数
+            const V = window.V || 3.7;
+            
+            // 获取LOAD卡片组小结参数
+            const summaryL = parseFloat(document.getElementById('summary-L').textContent) || 0;
+            const summaryLmin = parseFloat(document.getElementById('summary-Lmin').textContent) || 0;
+            const summaryLmax = parseFloat(document.getElementById('summary-Lmax').textContent) || 0;
+            
+            console.log('updateReportCard called:');
+            console.log('N:', N);
+            console.log('C:', C);
+            console.log('summaryL:', summaryL);
+            
+            // 计算Ename（能量规格值）
+            const Ename = N * C * V / 1000;
+            
+            // 计算电流（A）
+            const I = summaryL > 0 && N > 0 && V > 0 ? summaryL / (N * V) : 0;
+            const Imin = summaryLmin > 0 && N > 0 && V > 0 ? summaryLmin / (N * V) : 0;
+            const Imax = summaryLmax > 0 && N > 0 && V > 0 ? summaryLmax / (N * V) : 0;
+            
+            console.log('I:', I);
+            
+            // 计算CL变量
+            const CL = I > 0 && C > 0 ? I / (C / 1000) : 0;
+            const CLmin = Imin > 0 && Cmin > 0 ? Imin / (Cmin / 1000) : 0;
+            const CLmax = Imax > 0 && Cmax > 0 ? Imax / (Cmax / 1000) : 0;
+            
+            console.log('CL:', CL);
+            
+            // 计算负载因子
+            const E = N * C * V / 1000;
+            const Emin = N * Cmin * V / 1000;
+            const Emax = N * Cmax * V / 1000;
+            
+            let F = 0;
+            let Fmin = 0;
+            let Fmax = 0;
+            
+            if (summaryL > 0 && E > summaryL) {
+                F = 1 / (1 - (summaryL / E));
+            }
+            if (summaryLmin > 0 && Emin > summaryLmin) {
+                Fmin = 1 / (1 - (summaryLmin / Emin));
+            }
+            if (summaryLmax > 0 && Emax > summaryLmax) {
+                Fmax = 1 / (1 - (summaryLmax / Emax));
+            }
+            
+            // 计算运行时间（分钟）
+            const T = summaryL > 0 ? (E * 60 / summaryL) * F : 0;
+            const Tmin = summaryLmin > 0 ? (Emin * 60 / summaryLmin) * Fmin : 0;
+            const Tmax = summaryLmax > 0 ? (Emax * 60 / summaryLmax) * Fmax : 0;
+            
+            // 更新report_time卡片的显示
+            document.getElementById('report-C').textContent = Math.round(C);
+            document.getElementById('report-Cmin').textContent = Math.round(Cmin);
+            document.getElementById('report-Cmax').textContent = Math.round(Cmax);
+            document.getElementById('report-N').textContent = N;
+            document.getElementById('report-V').textContent = V.toFixed(1);
+            document.getElementById('report-Ename').textContent = Ename.toFixed(1);
+            document.getElementById('report-L').textContent = summaryL.toFixed(1);
+            document.getElementById('report-Lmin').textContent = summaryLmin.toFixed(1);
+            document.getElementById('report-Lmax').textContent = summaryLmax.toFixed(1);
+            // Current显示格式：最多一位小数，如果小数点前是0则显示两位
+            document.getElementById('report-I').textContent = I < 1 ? I.toFixed(2) : I.toFixed(1);
+            document.getElementById('report-Imin').textContent = Imin < 1 ? Imin.toFixed(2) : Imin.toFixed(1);
+            document.getElementById('report-Imax').textContent = Imax < 1 ? Imax.toFixed(2) : Imax.toFixed(1);
+            document.getElementById('report-F').textContent = F.toFixed(1);
+            document.getElementById('report-Fmin').textContent = Fmin.toFixed(1);
+            document.getElementById('report-Fmax').textContent = Fmax.toFixed(1);
+            document.getElementById('report-E').textContent = E.toFixed(1);
+            document.getElementById('report-Emin').textContent = Emin.toFixed(1);
+            document.getElementById('report-Emax').textContent = Emax.toFixed(1);
+            document.getElementById('report-T').textContent = T.toFixed(1);
+            document.getElementById('report-Tmin').textContent = Tmin.toFixed(1);
+            document.getElementById('report-Tmax').textContent = Tmax.toFixed(1);
+            
+            // 更新调试窗口
+            const debugWindow = document.getElementById('debug-window');
+            if (debugWindow) {
+                document.getElementById('debug-N').textContent = N;
+                document.getElementById('debug-C').textContent = Math.round(C);
+                document.getElementById('debug-Cmin').textContent = Math.round(Cmin);
+                document.getElementById('debug-Cmax').textContent = Math.round(Cmax);
+                document.getElementById('debug-V').textContent = V.toFixed(1);
+                document.getElementById('debug-summary-L').textContent = summaryL.toFixed(1);
+                document.getElementById('debug-summary-Lmin').textContent = summaryLmin.toFixed(1);
+                document.getElementById('debug-summary-Lmax').textContent = summaryLmax.toFixed(1);
+                document.getElementById('debug-Ename').textContent = Ename.toFixed(1);
+                document.getElementById('debug-I').textContent = I < 1 ? I.toFixed(2) : I.toFixed(1);
+                document.getElementById('debug-Imin').textContent = Imin < 1 ? Imin.toFixed(2) : Imin.toFixed(1);
+                document.getElementById('debug-Imax').textContent = Imax < 1 ? Imax.toFixed(2) : Imax.toFixed(1);
+                document.getElementById('debug-CL').textContent = CL.toFixed(6);
+                document.getElementById('debug-CLmin').textContent = CLmin.toFixed(6);
+                document.getElementById('debug-CLmax').textContent = CLmax.toFixed(6);
+                document.getElementById('debug-E').textContent = E.toFixed(1);
+                document.getElementById('debug-Emin').textContent = Emin.toFixed(1);
+                document.getElementById('debug-Emax').textContent = Emax.toFixed(1);
+                document.getElementById('debug-F').textContent = F.toFixed(1);
+                document.getElementById('debug-Fmin').textContent = Fmin.toFixed(1);
+                document.getElementById('debug-Fmax').textContent = Fmax.toFixed(1);
+                document.getElementById('debug-T').textContent = T.toFixed(1);
+                document.getElementById('debug-Tmin').textContent = Tmin.toFixed(1);
+                document.getElementById('debug-Tmax').textContent = Tmax.toFixed(1);
+            }
+        }
+        
+        // 初始化report_time卡片的事件监听器
+        function initReportCardListeners() {
+            // 监听PACK卡片输入框变化
+            const packInputs = ['N', 'C', 'Cmin', 'Cmax'];
+            packInputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', updateReportCard);
+                    input.addEventListener('blur', updateReportCard);
+                }
+            });
+            
+            // 监听Settings变化
+            const voltageRadios = document.querySelectorAll('input[name="voltage"]');
+            voltageRadios.forEach(radio => {
+                radio.addEventListener('change', updateReportCard);
+            });
+            
+            // 监听LOAD卡片组小结变化
+            const summaryDisplays = ['summary-L', 'summary-Lmin', 'summary-Lmax'];
+            summaryDisplays.forEach(id => {
+                const display = document.getElementById(id);
+                if (display) {
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.type === 'childList' || mutation.type === 'characterData' || mutation.type === 'attributes') {
+                                updateReportCard();
+                            }
+                        });
+                    });
+                    observer.observe(display, { childList: true, characterData: true, subtree: true, attributes: true });
+                }
+            });
+        }
+        
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             generateTimestamp();
@@ -2101,11 +2294,15 @@
             initCardFunctions();
             initSettingsFunctions();
             initCalcButtonLongPress();
+            initReportCardListeners();
             
             // 添加初始的LOAD子卡片
             if (cardGroupLOAD) {
                 addLoadCard();
             }
+            
+            // 初始化report_time卡片显示
+            setTimeout(updateReportCard, 100);
         });
         
         // 窗口大小变化时重新调整子屏幕高度
