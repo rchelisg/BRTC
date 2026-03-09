@@ -923,7 +923,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v8.2</span>
+            Battery Run Time Calculator <span id="version">v10.7</span>
         </div>
         
         <!-- 按键区 -->
@@ -1028,13 +1028,7 @@
                             </div>
                             <div class="report-icon copy-icon" onclick="copyReportCard()" style="position: absolute; top: 12px; right: 12px; cursor: pointer;">📄</div>
                             <div class="report-content" style="width: 100%; display: block;">
-                                <div class="report-row">
-                                    <div class="report-label">Cells</div>
-                                    <div class="report-values">
-                                        <div class="report-value" id="report-N">0</div>
-                                    </div>
-                                </div>
-                                <div class="report-row">
+                                <div class="report-row" style="margin-bottom: 4px;">
                                     <div class="report-label">Cell Cap</div>
                                     <div class="report-values">
                                         <div class="report-value" id="report-C">0.0</div>
@@ -1044,13 +1038,17 @@
                                     <div class="report-unit">mAh</div>
                                 </div>
                                 <div class="report-row">
-                                    <div class="report-label">Current</div>
+                                    <div class="report-label">Cells</div>
                                     <div class="report-values">
-                                        <div class="report-value" id="report-I">0.0</div>
-                                        <div class="report-value" id="report-Imin">0.0</div>
-                                        <div class="report-value" id="report-Imax">0.0</div>
+                                        <div class="report-value" id="report-N">0</div>
+                                        <div class="report-value">
+                                            <span style="font-size: 12px; font-weight: 500; color: #333; margin-left: -16px;">@</span>
+                                            <span id="report-V" style="font-size: 12px; font-weight: 500; color: #333; margin-left: 4px;">0.0</span>
+                                            <span style="margin-left: 34px;">E Norm</span>
+                                        </div>
+                                        <div class="report-value" id="report-Ename">0.0</div>
                                     </div>
-                                    <div class="report-unit">A</div>
+                                    <div class="report-unit">Wh</div>
                                 </div>
                                 <div class="report-row">
                                     <div class="report-label">Load</div>
@@ -1060,6 +1058,32 @@
                                         <div class="report-value" id="report-Lmax">0.0</div>
                                     </div>
                                     <div class="report-unit">W</div>
+                                </div>
+                                <div class="report-row" style="margin-bottom: 4px;">
+                                    <div class="report-label">Current</div>
+                                    <div class="report-values">
+                                        <div class="report-value" id="report-I">0.0</div>
+                                        <div class="report-value" id="report-Imin">0.0</div>
+                                        <div class="report-value" id="report-Imax">0.0</div>
+                                    </div>
+                                    <div class="report-unit">A</div>
+                                </div>
+                                <div class="report-row" style="margin-bottom: 4px;">
+                                    <div class="report-label">L Factor</div>
+                                    <div class="report-values">
+                                        <div class="report-value" id="report-F">0.0</div>
+                                        <div class="report-value" id="report-Fmin">0.0</div>
+                                        <div class="report-value" id="report-Fmax">0.0</div>
+                                    </div>
+                                </div>
+                                <div class="report-row">
+                                    <div class="report-label">Pack</div>
+                                    <div class="report-values">
+                                        <div class="report-value" id="report-E">0.0</div>
+                                        <div class="report-value" id="report-Emin">0.0</div>
+                                        <div class="report-value" id="report-Emax">0.0</div>
+                                    </div>
+                                    <div class="report-unit">Wh</div>
                                 </div>
                                 <div class="report-load-rows" id="report-load-rows">
                                     <!-- 子卡片数据将通过JavaScript动态生成 -->
