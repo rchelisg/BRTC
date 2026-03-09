@@ -923,7 +923,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v11.6</span>
+            Battery Run Time Calculator <span id="version">v11.7</span>
         </div>
         
         <!-- 按键区 -->
@@ -2280,6 +2280,73 @@
         // 格式化数值显示的函数
         function formatNumber(num, formatter) {
             return isValidNumber(num) ? formatter(num) : '-';
+        }
+        
+        // 复制报告卡内容到剪贴板的函数
+        function copyReportCard() {
+            const reportCard = document.getElementById('report-card');
+            
+            // 构建复制内容
+            let copyText = 'Battery Run Time Calculator\n\n';
+            
+            // Cell Cap
+            const C = document.getElementById('report-C').textContent;
+            const Cmin = document.getElementById('report-Cmin').textContent;
+            const Cmax = document.getElementById('report-Cmax').textContent;
+            copyText += `Cell Cap    ${C.padEnd(8)} ${Cmin.padEnd(8)} ${Cmax.padEnd(8)} mAh\n`;
+            
+            // Cells
+            const N = document.getElementById('report-N').textContent;
+            const V = document.getElementById('report-V').textContent;
+            const Ename = document.getElementById('report-Ename').textContent;
+            copyText += `Cells      ${N.padEnd(8)} @${V}${' '.repeat(10)} E Norm${' '.repeat(5)} ${Ename.padEnd(8)} Wh\n`;
+            
+            // Load
+            const L = document.getElementById('report-L').textContent;
+            const Lmin = document.getElementById('report-Lmin').textContent;
+            const Lmax = document.getElementById('report-Lmax').textContent;
+            copyText += `Load       ${L.padEnd(8)} ${Lmin.padEnd(8)} ${Lmax.padEnd(8)} W\n`;
+            
+            // Current
+            const I = document.getElementById('report-I').textContent;
+            const Imin = document.getElementById('report-Imin').textContent;
+            const Imax = document.getElementById('report-Imax').textContent;
+            copyText += `Current    ${I.padEnd(8)} ${Imin.padEnd(8)} ${Imax.padEnd(8)} A\n`;
+            
+            // L Factor
+            const F = document.getElementById('report-F').textContent;
+            const Fmin = document.getElementById('report-Fmin').textContent;
+            const Fmax = document.getElementById('report-Fmax').textContent;
+            copyText += `L Factor   ${F.padEnd(8)} ${Fmin.padEnd(8)} ${Fmax.padEnd(8)}\n`;
+            
+            // Pack
+            const E = document.getElementById('report-E').textContent;
+            const Emin = document.getElementById('report-Emin').textContent;
+            const Emax = document.getElementById('report-Emax').textContent;
+            copyText += `Pack       ${E.padEnd(8)} ${Emin.padEnd(8)} ${Emax.padEnd(8)} Wh\n\n`;
+            
+            // 表头
+            copyText += `${' '.repeat(12)} Nom        Min        Max\n`;
+            
+            // Run Time
+            const T = document.getElementById('report-T').textContent;
+            const Tmin = document.getElementById('report-Tmin').textContent;
+            const Tmax = document.getElementById('report-Tmax').textContent;
+            copyText += `Run Time   ${T.padEnd(8)} ${Tmin.padEnd(8)} ${Tmax.padEnd(8)} Min`;
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(copyText).then(() => {
+                // 改变卡片颜色为深绿色
+                const originalColor = reportCard.style.backgroundColor;
+                reportCard.style.backgroundColor = '#2E7D32';
+                
+                // 0.25秒后恢复到浅绿色
+                setTimeout(() => {
+                    reportCard.style.backgroundColor = originalColor;
+                }, 250);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
         }
         
         // 初始化report_time卡片的事件监听器
