@@ -975,13 +975,13 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v11.13</span>
+            Battery Run Time Calculator <span id="version">v11.4</span>
         </div>
         
         <!-- 按键区 -->
         <div class="button-area">
             <div class="button active">Calc</div>
-            <div class="button">DfX</div>
+            <div class="button">D<i>f</i>X</div>
             <div class="button">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
@@ -1277,6 +1277,26 @@
                             <div></div>
                             <div></div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- DfX调试窗口（临时）--> 
+                <div id="dfx-debug-window" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 300px; max-height: 400px; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 15px; font-size: 10px; z-index: 9999; overflow-y: auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); display: block;">
+                    <div id="dfx-debug-header" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; cursor: move; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
+                        <button onclick="event.stopPropagation(); document.getElementById('dfx-debug-window').style.display = 'none';" style="background: none; border: none; font-size: 14px; cursor: pointer; color: #333;">✕</button>
+                    </div>
+                    <div id="dfx-debug-content" style="color: #333; line-height: 0.8; font-size: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                        <div>T: <span id="dfx-debug-T">0</span></div>
+                        <div>Tcorrected: <span id="dfx-debug-Tcorrected">0</span></div>
+                        <div>N: <span id="dfx-debug-N">0</span></div>
+                        <div>Ncorrected: <span id="dfx-debug-Ncorrected">0</span></div>
+                        <div>C: <span id="dfx-debug-C">0</span></div>
+                        <div>L: <span id="dfx-debug-L">0</span></div>
+                        <div>V: <span id="dfx-debug-V">0</span></div>
+                        <div>Cell Type: <span id="dfx-debug-cell-type">0</span></div>
+                        <div>F: <span id="dfx-debug-F">0</span></div>
+                        <div>Ename: <span id="dfx-debug-Ename">0</span></div>
+                        <div>E: <span id="dfx-debug-E">0</span></div>
                     </div>
                 </div>
             </div>
@@ -1824,9 +1844,8 @@
         // 初始化注脚条长按功能
         function initFooterLongPress() {
             const footerBar = document.getElementById('footer-bar');
-            const debugWindow = document.getElementById('debug-window');
             
-            if (!footerBar || !debugWindow) return;
+            if (!footerBar) return;
             
             let pressTimer;
             
@@ -1834,7 +1853,17 @@
             footerBar.addEventListener('mousedown', function() {
                 pressTimer = setTimeout(function() {
                     // 长按一秒后显示调试窗口
-                    debugWindow.style.display = 'block';
+                    // 获取当前显示的子屏幕
+                    const currentScreen = document.querySelector('.subscreen-area[style*="display: block"]');
+                    if (currentScreen) {
+                        if (currentScreen.classList.contains('Calc')) {
+                            const debugWindow = currentScreen.querySelector('#debug-window');
+                            if (debugWindow) debugWindow.style.display = 'block';
+                        } else if (currentScreen.classList.contains('DfX')) {
+                            const dfxDebugWindow = currentScreen.querySelector('#dfx-debug-window');
+                            if (dfxDebugWindow) dfxDebugWindow.style.display = 'block';
+                        }
+                    }
                 }, 1000);
             });
             
@@ -1852,13 +1881,131 @@
             footerBar.addEventListener('touchstart', function() {
                 pressTimer = setTimeout(function() {
                     // 长按一秒后显示调试窗口
-                    debugWindow.style.display = 'block';
+                    // 获取当前显示的子屏幕
+                    const currentScreen = document.querySelector('.subscreen-area[style*="display: block"]');
+                    if (currentScreen) {
+                        if (currentScreen.classList.contains('Calc')) {
+                            const debugWindow = currentScreen.querySelector('#debug-window');
+                            if (debugWindow) debugWindow.style.display = 'block';
+                        } else if (currentScreen.classList.contains('DfX')) {
+                            const dfxDebugWindow = currentScreen.querySelector('#dfx-debug-window');
+                            if (dfxDebugWindow) dfxDebugWindow.style.display = 'block';
+                        }
+                    }
                 }, 1000);
             });
             
             // 触摸结束事件
             footerBar.addEventListener('touchend', function() {
                 clearTimeout(pressTimer);
+            });
+        }
+        
+        // 初始化DfX调试窗口拖拽功能
+        function initDfXDebugWindowDrag() {
+            const debugWindow = document.getElementById('dfx-debug-window');
+            const debugHeader = document.getElementById('dfx-debug-header');
+            
+            if (!debugWindow || !debugHeader) return;
+            
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+            
+            // 鼠标事件
+            debugHeader.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                // 移除transform属性，使用left和top进行定位
+                const rect = debugWindow.getBoundingClientRect();
+                debugWindow.style.transform = 'none';
+                debugWindow.style.left = rect.left + 'px';
+                debugWindow.style.top = rect.top + 'px';
+                debugWindow.style.bottom = 'auto';
+                debugWindow.style.right = 'auto';
+                
+                // 设置起始位置
+                startLeft = rect.left;
+                startTop = rect.top;
+                
+                debugWindow.style.cursor = 'grabbing';
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                // 计算新位置
+                let newLeft = startLeft + dx;
+                let newTop = startTop + dy;
+                
+                // 限制在窗口内
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                const debugWidth = debugWindow.offsetWidth;
+                const debugHeight = debugWindow.offsetHeight;
+                
+                newLeft = Math.max(0, Math.min(newLeft, windowWidth - debugWidth));
+                newTop = Math.max(0, Math.min(newTop, windowHeight - debugHeight));
+                
+                debugWindow.style.left = newLeft + 'px';
+                debugWindow.style.top = newTop + 'px';
+            });
+            
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                debugWindow.style.cursor = 'default';
+            });
+            
+            // 触摸事件
+            debugHeader.addEventListener('touchstart', function(e) {
+                isDragging = true;
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                
+                // 移除transform属性，使用left和top进行定位
+                const rect = debugWindow.getBoundingClientRect();
+                debugWindow.style.transform = 'none';
+                debugWindow.style.left = rect.left + 'px';
+                debugWindow.style.top = rect.top + 'px';
+                debugWindow.style.bottom = 'auto';
+                debugWindow.style.right = 'auto';
+                
+                // 设置起始位置
+                startLeft = rect.left;
+                startTop = rect.top;
+            });
+            
+            document.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                
+                const touch = e.touches[0];
+                const dx = touch.clientX - startX;
+                const dy = touch.clientY - startY;
+                
+                // 计算新位置
+                let newLeft = startLeft + dx;
+                let newTop = startTop + dy;
+                
+                // 限制在窗口内
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                const debugWidth = debugWindow.offsetWidth;
+                const debugHeight = debugWindow.offsetHeight;
+                
+                newLeft = Math.max(0, Math.min(newLeft, windowWidth - debugWidth));
+                newTop = Math.max(0, Math.min(newTop, windowHeight - debugHeight));
+                
+                debugWindow.style.left = newLeft + 'px';
+                debugWindow.style.top = newTop + 'px';
+            });
+            
+            document.addEventListener('touchend', function() {
+                isDragging = false;
             });
         }
         
@@ -2863,6 +3010,7 @@
             initSettingsFunctions();
             initDebugWindowDrag();
             initFooterLongPress();
+            initDfXDebugWindowDrag();
             initDfXFunctions();
             initCalcButtonLongPress();
             initReportCardListeners();
