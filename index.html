@@ -975,7 +975,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v11.8</span>
+            Battery Run Time Calculator <span id="version">v11.13</span>
         </div>
         
         <!-- 按键区 -->
@@ -1164,7 +1164,7 @@
                 </div>
                 
                 <!-- 调试窗口（临时）--> 
-                <div id="debug-window" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 300px; max-height: 400px; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 15px; font-size: 10px; z-index: 9999; overflow-y: auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div id="debug-window" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 300px; max-height: 400px; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 15px; font-size: 10px; z-index: 9999; overflow-y: auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); display: none;">
                     <div id="debug-header" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; cursor: move; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
                         <button onclick="event.stopPropagation(); document.getElementById('debug-window').style.display = 'none';" style="background: none; border: none; font-size: 14px; cursor: pointer; color: #333;">✕</button>
                     </div>
@@ -1203,10 +1203,81 @@
         <!-- DfX子屏幕 -->
         <div class="subscreen-area DfX" style="display: none;">
             <div class="card-container">
-                <!-- DfX子屏幕内容将在这里添加 -->
-                <div style="padding: 20px; text-align: center;">
-                    <h3>DfX 子屏幕</h3>
-                    <p>这里将添加DfX相关的卡片</p>
+                <!-- DfX显示卡片 -->
+                <div class="card" style="background-color: #E3F2FD; margin: 10px; padding: 10px; flex-direction: column; align-items: flex-start; min-height: auto;">
+                    <div class="card-content">
+                        <div class="card-body" style="width: 100%; display: grid; grid-template-columns: 80px 70px 50px 70px 50px; gap: 5px; align-items: center;">
+                            <!-- 第1行：Time -->
+                            <div style="text-align: right; font-size: 14px; color: #333;">Time</div>
+                            <input type="text" id="T" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;">Min</span>
+                            <input type="text" id="Tcorrected" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;">Min</span>
+                            
+                            <!-- 第2行：Cells -->
+                            <div style="text-align: right; font-size: 14px; color: #333;">Cells</div>
+                            <input type="text" id="N_dfx" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;"></span>
+                            <input type="text" id="Ncorrected" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;"></span>
+                            
+                            <!-- 第3行：Capacity -->
+                            <div style="text-align: right; font-size: 14px; color: #333;">Capacity</div>
+                            <input type="text" id="C_dfx" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;">mAh</span>
+                            <div></div>
+                            <div></div>
+                            
+                            <!-- 第4行：Load -->
+                            <div style="text-align: right; font-size: 14px; color: #333;">Load</div>
+                            <input type="text" id="L_dfx" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;">W</span>
+                            <div></div>
+                            <div></div>
+                            
+                            <!-- 空白行1 -->
+                            <div style="height: 27px;"></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            
+                            <!-- 空白行2 -->
+                            <div style="height: 27px;"></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            
+                            <!-- V行 -->
+                            <div style="text-align: right; font-size: 14px; color: #333;">V</div>
+                            <div id="V_dfx" style="text-align: center; padding: 4px; font-size: 14px;"></div>
+                            <span style="font-size: 12px; color: #666;"></span>
+                            <div id="CellTypeDisplay" style="text-align: center; padding: 4px; font-size: 14px; white-space: nowrap;"></div>
+                            <span style="font-size: 12px; color: #666;"></span>
+                            
+                            <!-- F行 -->
+                            <div style="text-align: right; font-size: 14px; color: #333;">F</div>
+                            <input type="text" id="F" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;"></span>
+                            <div></div>
+                            <div></div>
+                            
+                            <!-- PACKn行 -->
+                            <div style="text-align: right; font-size: 14px; color: #333;">PACKn</div>
+                            <input type="text" id="Ename" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;">Wh</span>
+                            <div></div>
+                            <div></div>
+                            
+                            <!-- PACK行 -->
+                            <div style="text-align: right; font-size: 14px; color: #333;">PACK</div>
+                            <input type="text" id="E" placeholder="0" style="text-align: center; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <span style="font-size: 12px; color: #666;">Wh</span>
+                            <div></div>
+                            <div></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1492,6 +1563,9 @@
                             cellTypeSection.style.display = 'none';
                         }
                     }
+                    
+                    // 更新CellTypeDisplay显示
+                    updateCellTypeDisplay();
                 });
             }
             
@@ -1500,6 +1574,12 @@
             voltageRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     window.V = parseFloat(this.value);
+                    
+                    // 同步V参数到DfX子屏幕
+                    const VDisplay = document.getElementById('V_dfx');
+                    if (VDisplay) {
+                        VDisplay.textContent = window.V || 0;
+                    }
                 });
             });
             
@@ -1508,8 +1588,28 @@
             cellTypeRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     window.CellType = parseInt(this.value);
+                    updateCellTypeDisplay();
                 });
             });
+            
+            // 更新CellTypeDisplay显示
+            function updateCellTypeDisplay() {
+                const CellTypeDisplay = document.getElementById('CellTypeDisplay');
+                if (CellTypeDisplay) {
+                    if (window.Comp === 0) {
+                        CellTypeDisplay.textContent = '';
+                    } else {
+                        if (window.CellType === 0) {
+                            CellTypeDisplay.textContent = 'Tabbed Cells';
+                        } else {
+                            CellTypeDisplay.textContent = 'Tabless Cells';
+                        }
+                    }
+                }
+            }
+            
+            // 初始化时更新一次显示
+            updateCellTypeDisplay();
             
             // 自定义确认对话框函数
             function showConfirmDialog(message, confirmCallback, cancelCallback) {
@@ -1596,6 +1696,9 @@
                             window.V = 3.7;
                             window.Comp = 1;
                             window.CellType = 0;
+                            
+                            // 更新CellTypeDisplay显示
+                            updateCellTypeDisplay();
                             
                             // 显示电池类型设置
                             if (cellTypeSection) {
@@ -1757,6 +1860,101 @@
             footerBar.addEventListener('touchend', function() {
                 clearTimeout(pressTimer);
             });
+        }
+        
+        // 初始化DfX子屏幕功能
+        function initDfXFunctions() {
+            // 获取DfX子屏幕的输入框
+            const TInput = document.getElementById('T');
+            const TcorrectedInput = document.getElementById('Tcorrected');
+            const NInput = document.getElementById('N_dfx');
+            const NcorrectedInput = document.getElementById('Ncorrected');
+            const CInput = document.getElementById('C_dfx');
+            const LInput = document.getElementById('L_dfx');
+            
+            // 处理T和Tcorrected输入（最多4位，小数点后最多1位）
+            function handleTimeInput(input) {
+                input.addEventListener('input', function() {
+                    let value = this.value;
+                    // 只允许输入数字和小数点
+                    value = value.replace(/[^0-9.]/g, '');
+                    // 确保只有一个小数点
+                    const parts = value.split('.');
+                    if (parts.length > 2) {
+                        value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    // 限制小数点后最多1位
+                    if (parts.length === 2 && parts[1].length > 1) {
+                        value = parts[0] + '.' + parts[1].slice(0, 1);
+                    }
+                    // 限制总长度最多4位（含小数点）
+                    if (value.length > 4) {
+                        value = value.slice(0, 4);
+                    }
+                    this.value = value;
+                });
+            }
+            
+            // 处理N和Ncorrected输入（最多1位，整数）
+            function handleCellsInput(input) {
+                input.addEventListener('input', function() {
+                    let value = this.value;
+                    // 只允许输入数字
+                    value = value.replace(/[^0-9]/g, '');
+                    // 限制为1位数字
+                    value = value.slice(0, 1);
+                    this.value = value;
+                });
+            }
+            
+            // 处理C输入（最多4位，整数）
+            function handleCapacityInput(input) {
+                input.addEventListener('input', function() {
+                    let value = this.value;
+                    // 只允许输入数字
+                    value = value.replace(/[^0-9]/g, '');
+                    // 限制为4位数字
+                    value = value.slice(0, 4);
+                    this.value = value;
+                });
+            }
+            
+            // 处理L输入（最多4位，小数点后最多1位）
+            function handleLoadInput(input) {
+                input.addEventListener('input', function() {
+                    let value = this.value;
+                    // 只允许输入数字和小数点
+                    value = value.replace(/[^0-9.]/g, '');
+                    // 确保只有一个小数点
+                    const parts = value.split('.');
+                    if (parts.length > 2) {
+                        value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    // 限制小数点后最多1位
+                    if (parts.length === 2 && parts[1].length > 1) {
+                        value = parts[0] + '.' + parts[1].slice(0, 1);
+                    }
+                    // 限制总长度最多4位（含小数点）
+                    if (value.length > 4) {
+                        value = value.slice(0, 4);
+                    }
+                    this.value = value;
+                });
+            }
+            
+            // 初始化所有输入框
+            if (TInput) handleTimeInput(TInput);
+            if (TcorrectedInput) handleTimeInput(TcorrectedInput);
+            if (NInput) handleCellsInput(NInput);
+            if (NcorrectedInput) handleCellsInput(NcorrectedInput);
+            if (CInput) handleCapacityInput(CInput);
+            if (LInput) handleLoadInput(LInput);
+            
+            // 同步V参数到DfX子屏幕
+            const VDisplay = document.getElementById('V_dfx');
+            if (VDisplay) {
+                VDisplay.textContent = window.V || 0;
+            }
         }
         
         // 初始化卡片功能
@@ -2665,6 +2863,7 @@
             initSettingsFunctions();
             initDebugWindowDrag();
             initFooterLongPress();
+            initDfXFunctions();
             initCalcButtonLongPress();
             initReportCardListeners();
             
