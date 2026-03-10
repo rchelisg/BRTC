@@ -975,7 +975,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v11.7</span>
+            Battery Run Time Calculator <span id="version">v12.0</span>
         </div>
         
         <!-- 按键区 -->
@@ -1352,7 +1352,8 @@
                 
                 <!-- DfX调试窗口（临时）--> 
                 <div id="dfx-debug-window" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 300px; max-height: 400px; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 15px; font-size: 10px; z-index: 9999; overflow-y: auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); display: block;">
-                    <div id="dfx-debug-header" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; cursor: move; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
+                    <div id="dfx-debug-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: move; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
+                        <div id="dfx-calculation-direction" style="font-weight: bold; color: #2196F3;"></div>
                         <button onclick="event.stopPropagation(); document.getElementById('dfx-debug-window').style.display = 'none';" style="background: none; border: none; font-size: 14px; cursor: pointer; color: #333;">✕</button>
                     </div>
                     <div id="dfx-debug-content" style="color: #333; line-height: 0.8; font-size: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
@@ -2087,6 +2088,19 @@
             const CInput = document.getElementById('C_dfx');
             const LInput = document.getElementById('L_dfx');
             
+            // 获取显示元素
+            const TcorrectedDisplay = document.getElementById('Tcorrected');
+            const NcorrectedDisplay = document.getElementById('Ncorrected');
+            const FDisplay = document.getElementById('F');
+            const EnameDisplay = document.getElementById('Ename');
+            const EDisplay = document.getElementById('E');
+            const VDisplay = document.getElementById('V_dfx');
+            const TcorrectedUnitElement = document.getElementById('Tcorrected-unit');
+            const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
+            
+            // 存储当前解题方向
+            window.dfxCurrentCalculationDirection = '';
+            
             // 处理T输入（最多4位，小数点后最多1位）
             function handleTimeInput(input) {
                 input.addEventListener('input', function() {
@@ -2107,6 +2121,7 @@
                         value = value.slice(0, 4);
                     }
                     this.value = value;
+                    calculateDfX();
                 });
             }
             
@@ -2119,6 +2134,7 @@
                     // 限制为1位数字
                     value = value.slice(0, 1);
                     this.value = value;
+                    calculateDfX();
                 });
             }
             
@@ -2131,6 +2147,7 @@
                     // 限制为4位数字
                     value = value.slice(0, 4);
                     this.value = value;
+                    calculateDfX();
                 });
             }
             
@@ -2154,7 +2171,159 @@
                         value = value.slice(0, 4);
                     }
                     this.value = value;
+                    calculateDfX();
                 });
+            }
+            
+            // 计算DfX子屏幕的参数
+            function calculateDfX() {
+                // 获取输入值
+                const T = parseFloat(TInput.value) || 0;
+                const N = parseFloat(NInput.value) || 0;
+                const C = parseFloat(CInput.value) || 0;
+                const L = parseFloat(LInput.value) || 0;
+                const V = window.V || 3.7;
+                
+                // 确定计算方向
+                let calculationDirection = window.dfxCurrentCalculationDirection;
+                
+                // 只有当当前解题方向为空时，才尝试确定新的解题方向
+                if (window.dfxCurrentCalculationDirection === '') {
+                    // 检查输入组合
+                    if (L > 0 && T > 0 && N > 0) {
+                        // LTN -> C
+                        calculationDirection = 'LTN -> C';
+                        const calculatedC = (L * T) / (N * V * 60);
+                        CInput.value = Math.round(calculatedC);
+                    } else if (L > 0 && N > 0 && C > 0) {
+                        // LNC -> T
+                        calculationDirection = 'LNC -> T';
+                        const calculatedT = (N * V * C * 60) / L;
+                        TInput.value = calculatedT.toFixed(1);
+                    } else if (L > 0 && C > 0 && T > 0) {
+                        // LCT -> N
+                        calculationDirection = 'LCT -> N';
+                        const calculatedN = (L * T) / (V * C * 60);
+                        NInput.value = Math.round(calculatedN);
+                    } else if (C > 0 && T > 0 && N > 0) {
+                        // CTN -> L
+                        calculationDirection = 'CTN -> L';
+                        const calculatedL = (N * V * C) / T * 60;
+                        LInput.value = calculatedL.toFixed(1);
+                    } else {
+                        // 输入不足，清空计算方向
+                        calculationDirection = '';
+                    }
+                    
+                    // 更新当前解题方向
+                    window.dfxCurrentCalculationDirection = calculationDirection;
+                } else {
+                    // 如果已经有解题方向，根据方向进行计算
+                    switch (window.dfxCurrentCalculationDirection) {
+                        case 'LTN -> C':
+                            if (L > 0 && T > 0 && N > 0) {
+                                const calculatedC = (L * T) / (N * V * 60);
+                                CInput.value = Math.round(calculatedC);
+                            }
+                            break;
+                        case 'LNC -> T':
+                            if (L > 0 && N > 0 && C > 0) {
+                                const calculatedT = (N * V * C * 60) / L;
+                                TInput.value = calculatedT.toFixed(1);
+                            }
+                            break;
+                        case 'LCT -> N':
+                            if (L > 0 && C > 0 && T > 0) {
+                                const calculatedN = (L * T) / (V * C * 60);
+                                NInput.value = Math.round(calculatedN);
+                            }
+                            break;
+                        case 'CTN -> L':
+                            if (C > 0 && T > 0 && N > 0) {
+                                const calculatedL = (N * V * C) / T * 60;
+                                LInput.value = calculatedL.toFixed(1);
+                            }
+                            break;
+                    }
+                }
+                
+                // 更新计算方向显示
+                if (calculationDirectionDisplay) {
+                    calculationDirectionDisplay.textContent = calculationDirection;
+                }
+                
+                // 计算其他参数
+                const Ename = N * C * V / 1000;
+                const I = L > 0 && N > 0 && V > 0 ? L / (N * V) : 0;
+                const CL = I > 0 && C > 0 ? I / (C / 1000) : 0;
+                
+                // 计算F（负载因子）
+                let F = 1;
+                const compensateC = document.getElementById('compensate-c').checked;
+                const cellTypeRadio = document.querySelector('input[name="cell-type"]:checked');
+                const cellType = cellTypeRadio ? parseInt(cellTypeRadio.value) === 1 : false;
+                
+                if (compensateC && CL > 0) {
+                    if (cellType) {
+                        // tabless cells
+                        F = Math.pow(0.2 / CL, 0.015);
+                    } else {
+                        // tabbed cells
+                        F = Math.pow(0.2 / CL, 0.04);
+                    }
+                }
+                
+                const E = N * V * C * F / 1000;
+                const Tcorrected = L > 0 ? (E / L) * 60 : 0;
+                const Ncorrected = N; // 暂时与N相同
+                
+                // 更新显示
+                if (TcorrectedDisplay) {
+                    TcorrectedDisplay.textContent = Tcorrected.toFixed(1);
+                }
+                
+                if (NcorrectedDisplay) {
+                    NcorrectedDisplay.textContent = Ncorrected;
+                }
+                
+                if (FDisplay) {
+                    FDisplay.textContent = (Math.floor(F * 100) / 100).toFixed(2);
+                }
+                
+                if (EnameDisplay) {
+                    EnameDisplay.textContent = Ename.toFixed(1);
+                }
+                
+                if (EDisplay) {
+                    EDisplay.textContent = E.toFixed(1);
+                }
+                
+                if (VDisplay) {
+                    VDisplay.textContent = V.toFixed(1);
+                }
+                
+                // 控制Tcorrected单位的显示
+                if (TcorrectedUnitElement) {
+                    TcorrectedUnitElement.style.display = Tcorrected === 0 ? 'none' : 'inline';
+                }
+                
+                // 更新调试窗口
+                updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E);
+            }
+            
+            // 更新DfX调试窗口
+            function updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E) {
+                document.getElementById('dfx-debug-T').textContent = T.toFixed(1);
+                document.getElementById('dfx-debug-Tcorrected').textContent = Tcorrected.toFixed(1);
+                document.getElementById('dfx-debug-N').textContent = N;
+                document.getElementById('dfx-debug-Ncorrected').textContent = Ncorrected;
+                document.getElementById('dfx-debug-C').textContent = C;
+                document.getElementById('dfx-debug-L').textContent = L.toFixed(1);
+                document.getElementById('dfx-debug-V').textContent = V.toFixed(1);
+                document.getElementById('dfx-debug-cell-type').textContent = cellType ? '1 (Tabless)' : '0 (Tabbed)';
+                document.getElementById('dfx-debug-F').textContent = (Math.floor(F * 100) / 100).toFixed(2);
+                document.getElementById('dfx-debug-Ename').textContent = Ename.toFixed(1);
+                document.getElementById('dfx-debug-E').textContent = E.toFixed(1);
             }
             
             // 初始化所有输入框
@@ -2164,16 +2333,13 @@
             if (LInput) handleLoadInput(LInput);
             
             // 同步V参数到DfX子屏幕
-            const VDisplay = document.getElementById('V_dfx');
             if (VDisplay) {
                 VDisplay.textContent = window.V || 0;
             }
             
             // 初始化Tcorrected单位的显示状态
-            const TcorrectedElement = document.getElementById('Tcorrected');
-            const TcorrectedUnitElement = document.getElementById('Tcorrected-unit');
-            if (TcorrectedElement && TcorrectedUnitElement) {
-                const value = TcorrectedElement.textContent;
+            if (TcorrectedDisplay && TcorrectedUnitElement) {
+                const value = TcorrectedDisplay.textContent;
                 const numValue = parseFloat(value) || 0;
                 TcorrectedUnitElement.style.display = numValue === 0 ? 'none' : 'inline';
             }
@@ -2791,6 +2957,122 @@
             });
         }
         
+        // 初始化DfX按钮长按事件
+        function initDfXButtonLongPress() {
+            const buttons = document.querySelectorAll('.button');
+            const dfxButton = buttons[1];
+            
+            if (!dfxButton) return;
+            
+            let longPressTimer;
+            
+            dfxButton.addEventListener('mousedown', function() {
+                longPressTimer = setTimeout(function() {
+                    // 清空DfX子屏幕上的输入框和显示框
+                    const TInput = document.getElementById('T');
+                    const NInput = document.getElementById('N_dfx');
+                    const CInput = document.getElementById('C_dfx');
+                    const LInput = document.getElementById('L_dfx');
+                    const TcorrectedDisplay = document.getElementById('Tcorrected');
+                    const NcorrectedDisplay = document.getElementById('Ncorrected');
+                    const FDisplay = document.getElementById('F');
+                    const EnameDisplay = document.getElementById('Ename');
+                    const EDisplay = document.getElementById('E');
+                    const TcorrectedUnitElement = document.getElementById('Tcorrected-unit');
+                    const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
+                    
+                    // 清空输入框
+                    if (TInput) TInput.value = '';
+                    if (NInput) NInput.value = '';
+                    if (CInput) CInput.value = '';
+                    if (LInput) LInput.value = '';
+                    
+                    // 清空显示框
+                    if (TcorrectedDisplay) TcorrectedDisplay.textContent = '0.0';
+                    if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0';
+                    if (FDisplay) FDisplay.textContent = '1.00';
+                    if (EnameDisplay) EnameDisplay.textContent = '0.0';
+                    if (EDisplay) EDisplay.textContent = '0.0';
+                    
+                    // 隐藏Tcorrected单位
+                    if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                    
+                    // 清空计算方向
+                    if (calculationDirectionDisplay) calculationDirectionDisplay.textContent = '';
+                    
+                    // 重置当前解题方向
+                    if (window.dfxCurrentCalculationDirection !== undefined) {
+                        window.dfxCurrentCalculationDirection = '';
+                    }
+                    
+                    // 更新调试窗口
+                    document.getElementById('dfx-debug-T').textContent = '0.0';
+                    document.getElementById('dfx-debug-Tcorrected').textContent = '0.0';
+                    document.getElementById('dfx-debug-N').textContent = '0';
+                    document.getElementById('dfx-debug-Ncorrected').textContent = '0';
+                    document.getElementById('dfx-debug-C').textContent = '0';
+                    document.getElementById('dfx-debug-L').textContent = '0.0';
+                }, 1000);
+            });
+            
+            dfxButton.addEventListener('mouseup', function() {
+                clearTimeout(longPressTimer);
+            });
+            
+            dfxButton.addEventListener('mouseleave', function() {
+                clearTimeout(longPressTimer);
+            });
+            
+            // 触摸事件支持
+            dfxButton.addEventListener('touchstart', function() {
+                longPressTimer = setTimeout(function() {
+                    // 清空DfX子屏幕上的输入框和显示框
+                    const TInput = document.getElementById('T');
+                    const NInput = document.getElementById('N_dfx');
+                    const CInput = document.getElementById('C_dfx');
+                    const LInput = document.getElementById('L_dfx');
+                    const TcorrectedDisplay = document.getElementById('Tcorrected');
+                    const NcorrectedDisplay = document.getElementById('Ncorrected');
+                    const FDisplay = document.getElementById('F');
+                    const EnameDisplay = document.getElementById('Ename');
+                    const EDisplay = document.getElementById('E');
+                    const TcorrectedUnitElement = document.getElementById('Tcorrected-unit');
+                    const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
+                    
+                    // 清空输入框
+                    if (TInput) TInput.value = '';
+                    if (NInput) NInput.value = '';
+                    if (CInput) CInput.value = '';
+                    if (LInput) LInput.value = '';
+                    
+                    // 清空显示框
+                    if (TcorrectedDisplay) TcorrectedDisplay.textContent = '0.0';
+                    if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0';
+                    if (FDisplay) FDisplay.textContent = '1.00';
+                    if (EnameDisplay) EnameDisplay.textContent = '0.0';
+                    if (EDisplay) EDisplay.textContent = '0.0';
+                    
+                    // 隐藏Tcorrected单位
+                    if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                    
+                    // 清空计算方向
+                    if (calculationDirectionDisplay) calculationDirectionDisplay.textContent = '';
+                    
+                    // 更新调试窗口
+                    document.getElementById('dfx-debug-T').textContent = '0.0';
+                    document.getElementById('dfx-debug-Tcorrected').textContent = '0.0';
+                    document.getElementById('dfx-debug-N').textContent = '0';
+                    document.getElementById('dfx-debug-Ncorrected').textContent = '0';
+                    document.getElementById('dfx-debug-C').textContent = '0';
+                    document.getElementById('dfx-debug-L').textContent = '0.0';
+                }, 1000);
+            });
+            
+            dfxButton.addEventListener('touchend', function() {
+                clearTimeout(longPressTimer);
+            });
+        }
+        
         // 设置按钮监听器
         function setupButtonListeners() {
             const buttons = document.querySelectorAll('.button');
@@ -3088,6 +3370,7 @@
             initDfXDebugWindowDrag();
             initDfXFunctions();
             initCalcButtonLongPress();
+            initDfXButtonLongPress();
             initReportCardListeners();
             
             // 添加初始的LOAD子卡片
