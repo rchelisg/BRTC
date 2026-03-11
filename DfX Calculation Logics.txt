@@ -19,6 +19,36 @@ I， CL - 中间变量
 E, Ename, F, Tcorrected, Ncorrected - 计算输出值
 
 
+添加一个通用计算函数，仅此子屏幕可见
+fComp(CellType, L, Voltage, C)
+{
+  F = 1;			// default. no compensation
+  I = L/Voltage;                // working current
+  CL = I/(C/1000);              // I in terms of C
+
+  if( CellType==0 )             // tabbed 18650
+  {
+    F = (0.2/CL)^0.04;
+  }
+  else if( CellType==1 )        // tabless 18650
+  {
+    F = (0.2/CL)^0.015;
+  }
+  else if( CellType==2 )        // no compensation needed
+  {
+    F = 1;                      // default. no compensation
+  }
+}
+
+4CTN-L 路径算法
+1. Ename = (C/1000)*N*Voltage                      // named energy based on C, N and voltage
+2. L = Ename/T                                     // calculate the named load (note, this is before E compensation)
+3. Run fComp(CellType, L, Voltage, C) to get F    // get the compensation F
+4. E = Ename*F                                    // calculate the actual energy (always smaller than Ename)
+5. Lcorrected = E/T                               // derive the actual load allowed
+
+
+
 1LNC-T路径算法：
 
 Ncorrented 不显示

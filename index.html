@@ -975,7 +975,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v12.10</span>
+            Battery Run Time Calculator <span id="version">v13.5</span>
         </div>
         
         <!-- 按键区 -->
@@ -1242,7 +1242,7 @@
                                 <div id="Ncorrected" style="width: 100%; text-align: center; padding: 4px; font-size: 14px;"></div>
                             </div>
                             <div style="width: 50px; margin-left: 5px; text-align: left;">
-                                <span style="font-size: 12px; color: #666;"></span>
+                                <span id="Ncorrected-unit" style="font-size: 12px; color: #666;">cells</span>
                             </div>
                         </div>
                         
@@ -1256,10 +1256,10 @@
                                 <span style="font-size: 12px; color: #666;">mAh</span>
                             </div>
                             <div style="width: 70px; margin-left: 5px;">
-                                <div></div>
+                                <div id="Ccorrected" style="width: 100%; text-align: center; padding: 4px; font-size: 14px;"></div>
                             </div>
-                            <div style="width: 50px; margin-left: 5px;">
-                                <div></div>
+                            <div style="width: 50px; margin-left: 5px; text-align: left;">
+                                <span id="Ccorrected-unit" style="font-size: 12px; color: #666;">mAh</span>
                             </div>
                         </div>
                         
@@ -1273,10 +1273,10 @@
                                 <span style="font-size: 12px; color: #666;">W</span>
                             </div>
                             <div style="width: 70px; margin-left: 5px;">
-                                <div></div>
+                                <div id="Lcorrected" style="width: 100%; text-align: center; padding: 4px; font-size: 14px;"></div>
                             </div>
-                            <div style="width: 50px; margin-left: 5px;">
-                                <div></div>
+                            <div style="width: 50px; margin-left: 5px; text-align: left;">
+                                <span id="Lcorrected-unit" style="font-size: 12px; color: #666;">W</span>
                             </div>
                         </div>
                         
@@ -1357,6 +1357,8 @@
                         <div>Ename: <span id="dfx-debug-Ename">0</span></div>
                         <div>CL: <span id="dfx-debug-CL">0</span></div>
                         <div>E: <span id="dfx-debug-E">0</span></div>
+                        <div>Lcorrected: <span id="dfx-debug-Lcorrected">0</span></div>
+                        <div>Ccorrected: <span id="dfx-debug-Ccorrected">0</span></div>
                     </div>
                 </div>
             </div>
@@ -2078,13 +2080,17 @@
             const LInput = document.getElementById('L_dfx');
             
             // 获取显示元素
-            const TcorrectedDisplay = document.getElementById('Tcorrected');
-            const NcorrectedDisplay = document.getElementById('Ncorrected');
             const FDisplay = document.getElementById('F');
             const EnameDisplay = document.getElementById('Ename');
             const EDisplay = document.getElementById('E');
-            const VDisplay = document.getElementById('V_dfx');
+            const TcorrectedDisplay = document.getElementById('Tcorrected');
             const TcorrectedUnitElement = document.getElementById('Tcorrected-unit');
+            const NcorrectedDisplay = document.getElementById('Ncorrected');
+            const NcorrectedUnitElement = document.getElementById('Ncorrected-unit');
+            const CcorrectedDisplay = document.getElementById('Ccorrected');
+            const CcorrectedUnitElement = document.getElementById('Ccorrected-unit');
+            const LcorrectedDisplay = document.getElementById('Lcorrected');
+            const LcorrectedUnitElement = document.getElementById('Lcorrected-unit');
             const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
             
             // 存储当前解题方向
@@ -2181,123 +2187,32 @@
                 const C = parseFloat(CInput.value) || 0;
                 const L = parseFloat(LInput.value) || 0;
                 const V = window.Voltage || 3.7;
+                const cellType = window.CellType || 0;
                 
-                // 确定计算方向
-                let calculationDirection = window.dfxCurrentCalculationDirection;
-                
-                // 只有当当前解题方向为空时，才尝试确定新的解题方向
-                if (window.dfxCurrentCalculationDirection === '') {
-                    // 检查输入组合
-                    if (L > 0 && N > 0 && C > 0) {
-                        // LNC -> T
-                        calculationDirection = 'LNC-T';
-                        window.dfxCurrentCalculationPath = '1LNC-T';
-                        const calculatedT = (N * V * C * 60) / L;
-                        TInput.value = calculatedT.toFixed(1);
-                    } else if (L > 0 && T > 0 && N > 0) {
-                        // LTN -> C
-                        calculationDirection = 'LTN-C';
-                        window.dfxCurrentCalculationPath = '2LTN-C';
-                        const calculatedC = (L * T) / (N * V * 60);
-                        CInput.value = Math.round(calculatedC);
-                    } else if (L > 0 && C > 0 && T > 0) {
-                        // LCT -> N
-                        calculationDirection = 'LCT-N';
-                        window.dfxCurrentCalculationPath = '3LCT-N';
-                        const calculatedN = (L * T) / (V * C * 60);
-                        NInput.value = Math.round(calculatedN);
-                    } else if (C > 0 && T > 0 && N > 0) {
-                        // CTN -> L
-                        calculationDirection = 'CTN-L';
-                        window.dfxCurrentCalculationPath = '4CTN-L';
-                        const calculatedL = (N * V * C) / T * 60;
-                        LInput.value = calculatedL.toFixed(1);
-                    } else {
-                        // 输入不足，清空计算方向
-                        calculationDirection = '';
-                        window.dfxCurrentCalculationPath = '';
-                    }
-                    
-                    // 更新当前解题方向
-                    window.dfxCurrentCalculationDirection = calculationDirection;
-                } else {
-                    // 如果已经有解题方向，根据方向进行计算
-                    switch (window.dfxCurrentCalculationDirection) {
-                        case 'LTN-C':
-                            if (L > 0 && T > 0 && N > 0) {
-                                const calculatedC = (L * T) / (N * V * 60);
-                                CInput.value = Math.round(calculatedC);
-                            }
-                            break;
-                        case 'LNC-T':
-                            if (L > 0 && N > 0 && C > 0) {
-                                const calculatedT = (N * V * C * 60) / L;
-                                TInput.value = calculatedT.toFixed(1);
-                            }
-                            break;
-                        case 'LCT-N':
-                            if (L > 0 && C > 0 && T > 0) {
-                                const calculatedN = (L * T) / (V * C * 60);
-                                NInput.value = Math.round(calculatedN);
-                            }
-                            break;
-                        case 'CTN-L':
-                            if (C > 0 && T > 0 && N > 0) {
-                                const calculatedL = (N * V * C) / T * 60;
-                                LInput.value = calculatedL.toFixed(1);
-                            }
-                            break;
-                    }
-                }
+                // 清空计算方向
+                const calculationDirection = '';
+                window.dfxCurrentCalculationDirection = '';
+                window.dfxCurrentCalculationPath = '';
                 
                 // 更新计算方向显示
                 if (calculationDirectionDisplay) {
                     calculationDirectionDisplay.textContent = calculationDirection;
                 }
                 
-                // 计算其他参数
-                const Ename = N * C * V / 1000;
-                const I = L > 0 && N > 0 && V > 0 ? L / (N * V) : 0;
-                const CL = I > 0 && C > 0 ? I / (C / 1000) : 0;
-                
-                // 计算F（负载因子）
-                let F = 1;
-                const compensateC = document.getElementById('compensate-c').checked;
-                const cellType = window.CellType === 1;
-                
-                if (compensateC && CL > 0) {
-                    if (cellType) {
-                        // tabless cells
-                        F = Math.pow(0.2 / CL, 0.015);
-                    } else {
-                        // tabbed cells
-                        F = Math.pow(0.2 / CL, 0.04);
-                    }
-                }
-                
-                const E = N * V * C * F / 1000;
-                const Tcorrected = L > 0 ? (E / L) * 60 : 0;
-                const Ncorrected = N; // 暂时与N相同
+                // 设置默认值
+                const Ename = 0;
+                const I = 0;
+                const CL = 0;
+                const F = 1;
+                const E = 0;
+                const Lcorrected = L;
+                const Ccorrected = C;
+                const Ncorrected = N;
+                const Tcorrected = 0;
                 
                 // 更新显示
-                if (TcorrectedDisplay) {
-                    if (Tcorrected === 0 || Math.abs(Tcorrected - T) < 0.1) {
-                        TcorrectedDisplay.textContent = '';
-                    } else {
-                        TcorrectedDisplay.textContent = Tcorrected.toFixed(1);
-                    }
-                }
-                
-                if (NcorrectedDisplay) {
-                    if (Ncorrected === 0 || Ncorrected === N) {
-                        NcorrectedDisplay.textContent = '';
-                    } else {
-                        NcorrectedDisplay.textContent = Ncorrected;
-                    }
-                }
-                
                 if (FDisplay) {
-                    FDisplay.textContent = (Math.floor(F * 100) / 100).toFixed(2);
+                    FDisplay.textContent = F.toFixed(2);
                 }
                 
                 if (EnameDisplay) {
@@ -2308,31 +2223,58 @@
                     EDisplay.textContent = E.toFixed(1);
                 }
                 
+                if (TcorrectedDisplay) {
+                    TcorrectedDisplay.textContent = Tcorrected.toFixed(1);
+                }
+                
+                if (NcorrectedDisplay) {
+                    NcorrectedDisplay.textContent = Ncorrected.toFixed(1);
+                }
+                
+                if (CcorrectedDisplay) {
+                    CcorrectedDisplay.textContent = Ccorrected.toFixed(1);
+                }
+                
+                if (LcorrectedDisplay) {
+                    LcorrectedDisplay.textContent = Lcorrected.toFixed(1);
+                }
+                
                 // 控制Tcorrected单位的显示
                 if (TcorrectedUnitElement) {
-                    if (Tcorrected === 0 || Math.abs(Tcorrected - T) < 0.1) {
-                        TcorrectedUnitElement.style.display = 'none';
-                    } else {
-                        TcorrectedUnitElement.style.display = 'inline';
-                    }
+                    TcorrectedUnitElement.style.display = 'inline';
+                }
+                
+                // 控制Ncorrected单位的显示
+                if (NcorrectedUnitElement) {
+                    NcorrectedUnitElement.style.display = 'inline';
+                }
+                
+                // 控制Ccorrected单位的显示
+                if (CcorrectedUnitElement) {
+                    CcorrectedUnitElement.style.display = 'inline';
+                }
+                
+                // 控制Lcorrected单位的显示
+                if (LcorrectedUnitElement) {
+                    LcorrectedUnitElement.style.display = 'inline';
                 }
                 
                 // 更新调试窗口
-                updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E, I, CL);
+                updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E, I, CL, Lcorrected, Ccorrected);
             }
             
             // 更新DfX调试窗口
-            function updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E, I, CL) {
+            function updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E, I, CL, Lcorrected, Ccorrected) {
                 document.getElementById('dfx-debug-T').textContent = T.toFixed(1);
                 document.getElementById('dfx-debug-Tcorrected').textContent = Tcorrected.toFixed(1);
                 document.getElementById('dfx-debug-N').textContent = N;
-                document.getElementById('dfx-debug-Ncorrected').textContent = Ncorrected;
+                document.getElementById('dfx-debug-Ncorrected').textContent = Ncorrected.toFixed(1);
                 document.getElementById('dfx-debug-C').textContent = C;
                 document.getElementById('dfx-debug-L').textContent = L.toFixed(1);
                 document.getElementById('dfx-debug-Voltage').textContent = V.toFixed(1);
                 // 显示CellType的所有三个值
                 let cellTypeText = '';
-                switch (window.CellType) {
+                switch (cellType) {
                     case 0:
                         cellTypeText = '0 (18650)';
                         break;
@@ -2349,6 +2291,8 @@
                 document.getElementById('dfx-debug-Ename').textContent = Ename.toFixed(1);
                 document.getElementById('dfx-debug-CL').textContent = CL.toFixed(2);
                 document.getElementById('dfx-debug-E').textContent = E.toFixed(1);
+                document.getElementById('dfx-debug-Lcorrected').textContent = Lcorrected.toFixed(1);
+                document.getElementById('dfx-debug-Ccorrected').textContent = Ccorrected.toFixed(1);
             }
             
             // 初始化所有输入框
@@ -2392,6 +2336,8 @@
                     calculateDfX();
                 });
             }
+            
+
             
             // 初始化Tcorrected单位的显示状态
             if (TcorrectedDisplay && TcorrectedUnitElement) {
@@ -3032,12 +2978,15 @@
                     const NInput = document.getElementById('N_dfx');
                     const CInput = document.getElementById('C_dfx');
                     const LInput = document.getElementById('L_dfx');
-                    const TcorrectedDisplay = document.getElementById('Tcorrected');
-                    const NcorrectedDisplay = document.getElementById('Ncorrected');
                     const FDisplay = document.getElementById('F');
                     const EnameDisplay = document.getElementById('Ename');
                     const EDisplay = document.getElementById('E');
-                    const TcorrectedUnitElement = document.getElementById('Tcorrected-unit');
+                    const NcorrectedDisplay = document.getElementById('Ncorrected');
+                    const NcorrectedUnitElement = document.getElementById('Ncorrected-unit');
+                    const CcorrectedDisplay = document.getElementById('Ccorrected');
+                    const CcorrectedUnitElement = document.getElementById('Ccorrected-unit');
+                    const LcorrectedDisplay = document.getElementById('Lcorrected');
+                    const LcorrectedUnitElement = document.getElementById('Lcorrected-unit');
                     const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
                     
                     // 清空输入框
@@ -3047,14 +2996,12 @@
                     if (LInput) LInput.value = '';
                     
                     // 清空显示框
-                    if (TcorrectedDisplay) TcorrectedDisplay.textContent = '0.0';
-                    if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0';
                     if (FDisplay) FDisplay.textContent = '1.00';
                     if (EnameDisplay) EnameDisplay.textContent = '0.0';
                     if (EDisplay) EDisplay.textContent = '0.0';
-                    
-                    // 隐藏Tcorrected单位
-                    if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                    if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0.0';
+                    if (CcorrectedDisplay) CcorrectedDisplay.textContent = '0.0';
+                    if (LcorrectedDisplay) LcorrectedDisplay.textContent = '0.0';
                     
                     // 清空计算方向
                     if (calculationDirectionDisplay) calculationDirectionDisplay.textContent = '';
@@ -3100,7 +3047,7 @@
                     document.getElementById('dfx-debug-T').textContent = '0.0';
                     document.getElementById('dfx-debug-Tcorrected').textContent = '0.0';
                     document.getElementById('dfx-debug-N').textContent = '0';
-                    document.getElementById('dfx-debug-Ncorrected').textContent = '0';
+                    document.getElementById('dfx-debug-Ncorrected').textContent = '0.0';
                     document.getElementById('dfx-debug-C').textContent = '0';
                     document.getElementById('dfx-debug-L').textContent = '0.0';
                     document.getElementById('dfx-debug-Voltage').textContent = '3.7';
@@ -3110,6 +3057,8 @@
                     document.getElementById('dfx-debug-Ename').textContent = '0.0';
                     document.getElementById('dfx-debug-CL').textContent = '0.00';
                     document.getElementById('dfx-debug-E').textContent = '0.0';
+                    document.getElementById('dfx-debug-Lcorrected').textContent = '0.0';
+                    document.getElementById('dfx-debug-Ccorrected').textContent = '0.0';
                 }, 1000);
             });
             
@@ -3129,12 +3078,15 @@
                     const NInput = document.getElementById('N_dfx');
                     const CInput = document.getElementById('C_dfx');
                     const LInput = document.getElementById('L_dfx');
-                    const TcorrectedDisplay = document.getElementById('Tcorrected');
-                    const NcorrectedDisplay = document.getElementById('Ncorrected');
                     const FDisplay = document.getElementById('F');
                     const EnameDisplay = document.getElementById('Ename');
                     const EDisplay = document.getElementById('E');
-                    const TcorrectedUnitElement = document.getElementById('Tcorrected-unit');
+                    const NcorrectedDisplay = document.getElementById('Ncorrected');
+                    const NcorrectedUnitElement = document.getElementById('Ncorrected-unit');
+                    const CcorrectedDisplay = document.getElementById('Ccorrected');
+                    const CcorrectedUnitElement = document.getElementById('Ccorrected-unit');
+                    const LcorrectedDisplay = document.getElementById('Lcorrected');
+                    const LcorrectedUnitElement = document.getElementById('Lcorrected-unit');
                     const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
                     
                     // 清空输入框
@@ -3144,14 +3096,12 @@
                     if (LInput) LInput.value = '';
                     
                     // 清空显示框
-                    if (TcorrectedDisplay) TcorrectedDisplay.textContent = '0.0';
-                    if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0';
                     if (FDisplay) FDisplay.textContent = '1.00';
                     if (EnameDisplay) EnameDisplay.textContent = '0.0';
                     if (EDisplay) EDisplay.textContent = '0.0';
-                    
-                    // 隐藏Tcorrected单位
-                    if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                    if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0.0';
+                    if (CcorrectedDisplay) CcorrectedDisplay.textContent = '0.0';
+                    if (LcorrectedDisplay) LcorrectedDisplay.textContent = '0.0';
                     
                     // 清空计算方向
                     if (calculationDirectionDisplay) calculationDirectionDisplay.textContent = '';
@@ -3160,7 +3110,7 @@
                     document.getElementById('dfx-debug-T').textContent = '0.0';
                     document.getElementById('dfx-debug-Tcorrected').textContent = '0.0';
                     document.getElementById('dfx-debug-N').textContent = '0';
-                    document.getElementById('dfx-debug-Ncorrected').textContent = '0';
+                    document.getElementById('dfx-debug-Ncorrected').textContent = '0.0';
                     document.getElementById('dfx-debug-C').textContent = '0';
                     document.getElementById('dfx-debug-L').textContent = '0.0';
                     document.getElementById('dfx-debug-Voltage').textContent = '3.7';
@@ -3170,6 +3120,8 @@
                     document.getElementById('dfx-debug-Ename').textContent = '0.0';
                     document.getElementById('dfx-debug-CL').textContent = '0.00';
                     document.getElementById('dfx-debug-E').textContent = '0.0';
+                    document.getElementById('dfx-debug-Lcorrected').textContent = '0.0';
+                    document.getElementById('dfx-debug-Ccorrected').textContent = '0.0';
                 }, 1000);
             });
             
