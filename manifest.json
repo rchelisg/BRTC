@@ -2,7 +2,7 @@
   "name": "Battery Run Time Calculator",
   "short_name": "Battery Calculator",
   "description": "A tool to calculate battery run time for Apple devices",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f5f5f5",
   "theme_color": "#81C784",
