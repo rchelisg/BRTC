@@ -975,7 +975,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v13.5</span>
+            Battery Run Time Calculator <span id="version">v14.1</span>
         </div>
         
         <!-- 按键区 -->
@@ -1338,7 +1338,7 @@
                 </div>
                 
                 <!-- DfX调试窗口（临时）--> 
-                <div id="dfx-debug-window" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 300px; max-height: 400px; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 15px; font-size: 10px; z-index: 9999; overflow-y: auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); display: block;">
+                <div id="dfx-debug-window" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 300px; max-height: 400px; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 15px; font-size: 10px; z-index: 9999; overflow-y: auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); display: none;">
                     <div id="dfx-debug-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: move; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
                         <div id="dfx-calculation-direction" style="font-weight: bold; color: #2196F3;"></div>
                         <button onclick="event.stopPropagation(); document.getElementById('dfx-debug-window').style.display = 'none';" style="background: none; border: none; font-size: 14px; cursor: pointer; color: #333;">✕</button>
@@ -1410,14 +1410,25 @@
     <script>
         // 时间戳生成和存储
         function generateTimestamp() {
-            let timestamp = localStorage.getItem('app_timestamp');
+            const version = document.getElementById('version').textContent;
+            const storedVersion = localStorage.getItem('app_version');
             
-            if (!timestamp) {
+            // 检查版本号是否变化，如果变化则更新时间戳
+            if (version !== storedVersion) {
                 const now = new Date();
-                timestamp = now.toISOString().slice(0, 19).replace('T', ' ');
+                // 使用本地时间，确保显示正确的本地时间
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
                 localStorage.setItem('app_timestamp', timestamp);
+                localStorage.setItem('app_version', version);
             }
             
+            const timestamp = localStorage.getItem('app_timestamp') || '';
             document.getElementById('timestamp').textContent = timestamp;
         }
         
@@ -2179,6 +2190,181 @@
                 });
             }
             
+            // 通用计算函数 fComp
+            function fComp(CellType, L, Voltage, C, N) {
+                let F = 1; 	 	 	 // default. no compensation
+                const I = L / (Voltage * N);            // working current
+                const CL = I / (C / 1000);              // I in terms of C
+
+                if (CellType === 0)             // tabbed 18650
+                {
+                    F = Math.pow(0.2 / CL, 0.04);
+                }
+                else if (CellType === 1)        // tabless 18650
+                {
+                    F = Math.pow(0.2 / CL, 0.015);
+                }
+                else if (CellType === 2)        // no compensation needed
+                {
+                    F = 1;                      // default. no compensation
+                }
+                return { F, I, CL };
+            }
+
+            // 恢复默认样式
+            function resetDefaultStyles() {
+                // 恢复输入框样式
+                if (TInput) {
+                    TInput.style.color = '#333';
+                    TInput.style.backgroundColor = '';
+                    TInput.style.border = '1px solid #ddd';
+                    TInput.style.pointerEvents = 'auto';
+                }
+                if (NInput) {
+                    NInput.style.color = '#333';
+                    NInput.style.backgroundColor = '';
+                    NInput.style.border = '1px solid #ddd';
+                    NInput.style.pointerEvents = 'auto';
+                }
+                if (CInput) {
+                    CInput.style.color = '#333';
+                    CInput.style.backgroundColor = '';
+                    CInput.style.border = '1px solid #ddd';
+                    CInput.style.pointerEvents = 'auto';
+                }
+                if (LInput) {
+                    LInput.style.color = '#333';
+                    LInput.style.backgroundColor = '';
+                    LInput.style.border = '1px solid #ddd';
+                    LInput.style.pointerEvents = 'auto';
+                }
+                
+                // 恢复显示元素样式
+                if (TcorrectedDisplay) TcorrectedDisplay.style.color = '';
+                if (NcorrectedDisplay) NcorrectedDisplay.style.color = '';
+                if (CcorrectedDisplay) CcorrectedDisplay.style.color = '';
+                if (LcorrectedDisplay) LcorrectedDisplay.style.color = '';
+                
+                // 隐藏所有corrected值及其单位
+                if (TcorrectedDisplay) TcorrectedDisplay.style.display = 'none';
+                if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                if (NcorrectedDisplay) NcorrectedDisplay.style.display = 'none';
+                if (NcorrectedUnitElement) NcorrectedUnitElement.style.display = 'none';
+                if (CcorrectedDisplay) CcorrectedDisplay.style.display = 'none';
+                if (CcorrectedUnitElement) CcorrectedUnitElement.style.display = 'none';
+                if (LcorrectedDisplay) LcorrectedDisplay.style.display = 'none';
+                if (LcorrectedUnitElement) LcorrectedUnitElement.style.display = 'none';
+            }
+
+            // 初始化DfX子屏幕
+            window.initDfXSubScreen = function() {
+                // 获取元素
+                const TInput = document.getElementById('T');
+                const NInput = document.getElementById('N_dfx');
+                const CInput = document.getElementById('C_dfx');
+                const LInput = document.getElementById('L_dfx');
+                const FDisplay = document.getElementById('F');
+                const EnameDisplay = document.getElementById('Ename');
+                const EDisplay = document.getElementById('E');
+                const TcorrectedDisplay = document.getElementById('Tcorrected');
+                const TcorrectedUnitElement = document.getElementById('Tcorrected-unit');
+                const NcorrectedDisplay = document.getElementById('Ncorrected');
+                const NcorrectedUnitElement = document.getElementById('Ncorrected-unit');
+                const CcorrectedDisplay = document.getElementById('Ccorrected');
+                const CcorrectedUnitElement = document.getElementById('Ccorrected-unit');
+                const LcorrectedDisplay = document.getElementById('Lcorrected');
+                const LcorrectedUnitElement = document.getElementById('Lcorrected-unit');
+                const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
+                
+                // 清空输入
+                if (TInput) TInput.value = '';
+                if (NInput) NInput.value = '';
+                if (CInput) CInput.value = '';
+                if (LInput) LInput.value = '';
+                
+                // 清空显示
+                if (FDisplay) FDisplay.textContent = '1.00';
+                if (EnameDisplay) EnameDisplay.textContent = '0.0';
+                if (EDisplay) EDisplay.textContent = '0.0';
+                if (TcorrectedDisplay) TcorrectedDisplay.textContent = '0.0';
+                if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0.0';
+                if (CcorrectedDisplay) CcorrectedDisplay.textContent = '0.0';
+                if (LcorrectedDisplay) LcorrectedDisplay.textContent = '0.0';
+                
+                // 恢复显示卡上各项显示的原始属性
+                // 恢复输入框样式
+                if (TInput) {
+                    TInput.style.color = '#333';
+                    TInput.style.backgroundColor = '';
+                    TInput.style.border = '1px solid #ddd';
+                    TInput.style.pointerEvents = 'auto';
+                }
+                if (NInput) {
+                    NInput.style.color = '#333';
+                    NInput.style.backgroundColor = '';
+                    NInput.style.border = '1px solid #ddd';
+                    NInput.style.pointerEvents = 'auto';
+                }
+                if (CInput) {
+                    CInput.style.color = '#333';
+                    CInput.style.backgroundColor = '';
+                    CInput.style.border = '1px solid #ddd';
+                    CInput.style.pointerEvents = 'auto';
+                }
+                if (LInput) {
+                    LInput.style.color = '#333';
+                    LInput.style.backgroundColor = '';
+                    LInput.style.border = '1px solid #ddd';
+                    LInput.style.pointerEvents = 'auto';
+                }
+                
+                // 恢复显示元素样式
+                if (TcorrectedDisplay) TcorrectedDisplay.style.color = '';
+                if (NcorrectedDisplay) NcorrectedDisplay.style.color = '';
+                if (CcorrectedDisplay) CcorrectedDisplay.style.color = '';
+                if (LcorrectedDisplay) LcorrectedDisplay.style.color = '';
+                
+                // 隐藏所有corrected值及其单位
+                if (TcorrectedDisplay) TcorrectedDisplay.style.display = 'none';
+                if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                if (NcorrectedDisplay) NcorrectedDisplay.style.display = 'none';
+                if (NcorrectedUnitElement) NcorrectedUnitElement.style.display = 'none';
+                if (CcorrectedDisplay) CcorrectedDisplay.style.display = 'none';
+                if (CcorrectedUnitElement) CcorrectedUnitElement.style.display = 'none';
+                if (LcorrectedDisplay) LcorrectedDisplay.style.display = 'none';
+                if (LcorrectedUnitElement) LcorrectedUnitElement.style.display = 'none';
+                
+                // 设置Voltage初始值为3.7
+                window.Voltage = 3.7;
+                // 重置Voltage按钮显示
+                const voltageButton = document.getElementById('voltage-button');
+                if (voltageButton) {
+                    voltageButton.textContent = '3.7V';
+                }
+                
+                // 设置CellType初始值为0 （18650）
+                window.CellType = 0;
+                // 重置CellType按钮显示
+                const cellTypeButton = document.getElementById('cell-type-button');
+                if (cellTypeButton) {
+                    cellTypeButton.textContent = '18650';
+                }
+                
+                // 清空计算方向
+                window.dfxCurrentCalculationDirection = '';
+                window.dfxCurrentCalculationPath = '';
+                
+                // 更新计算方向显示
+                if (calculationDirectionDisplay) {
+                    calculationDirectionDisplay.textContent = '';
+                }
+                
+                // 更新调试窗口
+                if (typeof updateDfXDebugWindow === 'function') {
+                    updateDfXDebugWindow(0, 0, 0, 0, 0, 0, 3.7, 0, 1, 0, 0, 0, 0, 0, 0);
+                }
+            }
+
             // 计算DfX子屏幕的参数
             function calculateDfX() {
                 // 获取输入值
@@ -2189,26 +2375,227 @@
                 const V = window.Voltage || 3.7;
                 const cellType = window.CellType || 0;
                 
-                // 清空计算方向
-                const calculationDirection = '';
-                window.dfxCurrentCalculationDirection = '';
-                window.dfxCurrentCalculationPath = '';
+                // 确定计算方向
+                let calculationDirection = window.dfxCurrentCalculationDirection;
+                let calculationPath = window.dfxCurrentCalculationPath;
+                
+                // 只有当当前解题方向为空时，才尝试确定新的解题方向
+                if (window.dfxCurrentCalculationDirection === '') {
+                    // 检查输入组合
+                    if (L > 0 && N > 0 && C > 0) {
+                        // LNC -> T
+                        calculationDirection = 'LNC-T';
+                        calculationPath = '1LNC-T';
+                    } else if (L > 0 && T > 0 && N > 0) {
+                        // LTN -> C
+                        calculationDirection = 'LTN-C';
+                        calculationPath = '2LTN-C';
+                    } else if (L > 0 && C > 0 && T > 0) {
+                        // LCT -> N
+                        calculationDirection = 'LCT-N';
+                        calculationPath = '3LCT-N';
+                    } else if (C > 0 && T > 0 && N > 0) {
+                        // CTN -> L
+                        calculationDirection = 'CTN-L';
+                        calculationPath = '4CTN-L';
+                    } else {
+                        // 输入不足，清空计算方向
+                        calculationDirection = '';
+                        calculationPath = '';
+                        resetDefaultStyles();
+                    }
+                    
+                    // 更新当前解题方向
+                    window.dfxCurrentCalculationDirection = calculationDirection;
+                    window.dfxCurrentCalculationPath = calculationPath;
+                }
                 
                 // 更新计算方向显示
                 if (calculationDirectionDisplay) {
-                    calculationDirectionDisplay.textContent = calculationDirection;
+                    calculationDirectionDisplay.textContent = calculationPath;
                 }
                 
                 // 设置默认值
-                const Ename = 0;
-                const I = 0;
-                const CL = 0;
-                const F = 1;
-                const E = 0;
-                const Lcorrected = L;
-                const Ccorrected = C;
-                const Ncorrected = N;
-                const Tcorrected = 0;
+                let Ename = 0;
+                let I = 0;
+                let CL = 0;
+                let F = 1;
+                let E = 0;
+                let Lcorrected = L;
+                let Ccorrected = C;
+                let Ncorrected = N;
+                let Tcorrected = 0;
+                
+                // 恢复默认样式
+                resetDefaultStyles();
+                
+                // 根据计算方向进行计算
+                switch (window.dfxCurrentCalculationDirection) {
+                    case 'LNC-T':
+                        if (L > 0 && N > 0 && C > 0) {
+                            // 1LNC-T 路径算法
+                            // 在调试窗口标题位置居中显示 1-LNC-T
+                            if (calculationDirectionDisplay) {
+                                calculationDirectionDisplay.textContent = '1-LNC-T';
+                            }
+                            
+                            Ename = N * (C / 1000) * V;
+                            const t = (60 * Ename) / L;
+                            TInput.value = t.toFixed(1);
+                            const compResult = fComp(cellType, L, V, C, N);
+                            F = compResult.F;
+                            I = compResult.I;
+                            CL = compResult.CL;
+                            E = Ename * F;
+                            Tcorrected = (60 * E) / L;
+                            
+                            // 1LNC-T 路径特殊显示效果
+                            // L, N, C 显示改为浅灰色
+                            if (LInput) LInput.style.color = '#999';
+                            if (NInput) NInput.style.color = '#999';
+                            if (CInput) CInput.style.color = '#999';
+                            
+                            // Tcorrected显示改为红色，T显示改为浅红色
+                            if (TcorrectedDisplay) {
+                                TcorrectedDisplay.style.display = 'block';
+                                TcorrectedDisplay.style.color = 'red';
+                            }
+                            if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'inline';
+                            if (TInput) TInput.style.color = '#ff9999';
+                            
+                            // Ncorrected，Ccorrected，Lcorrected不显示
+                            if (NcorrectedDisplay) NcorrectedDisplay.style.display = 'none';
+                            if (NcorrectedUnitElement) NcorrectedUnitElement.style.display = 'none';
+                            if (CcorrectedDisplay) CcorrectedDisplay.style.display = 'none';
+                            if (CcorrectedUnitElement) CcorrectedUnitElement.style.display = 'none';
+                            if (LcorrectedDisplay) LcorrectedDisplay.style.display = 'none';
+                            if (LcorrectedUnitElement) LcorrectedUnitElement.style.display = 'none';
+                        }
+                        break;
+                    case 'LTN-C':
+                        if (L > 0 && T > 0 && N > 0) {
+                            // 2LTN-C 路径算法
+                            // 在调试窗口标题位置居中显示 2-LTN-C
+                            if (calculationDirectionDisplay) {
+                                calculationDirectionDisplay.textContent = '2-LTN-C';
+                            }
+                            
+                            E = L * (T / 60);
+                            const c = E / (N * V);
+                            CInput.value = Math.round(c * 1000);
+                            const compResult = fComp(cellType, L, V, c * 1000, N);
+                            F = compResult.F;
+                            I = compResult.I;
+                            CL = compResult.CL;
+                            Ename = E / F;
+                            Ccorrected = (Ename / (N * V)) * 1000;
+                            
+                            // 2LTN-C 路径特殊显示效果
+                            // L, T, N 显示改为浅灰色
+                            if (LInput) LInput.style.color = '#999';
+                            if (TInput) TInput.style.color = '#999';
+                            if (NInput) NInput.style.color = '#999';
+                            
+                            // Ccorrected显示改为红色，C显示改为浅红色
+                            if (CcorrectedDisplay) {
+                                CcorrectedDisplay.style.display = 'block';
+                                CcorrectedDisplay.style.color = 'red';
+                            }
+                            if (CcorrectedUnitElement) CcorrectedUnitElement.style.display = 'inline';
+                            if (CInput) CInput.style.color = '#ff9999';
+                            
+                            // Tcorrected，Lcorrected, Ncorrected 不显示
+                            if (TcorrectedDisplay) TcorrectedDisplay.style.display = 'none';
+                            if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                            if (LcorrectedDisplay) LcorrectedDisplay.style.display = 'none';
+                            if (LcorrectedUnitElement) LcorrectedUnitElement.style.display = 'none';
+                            if (NcorrectedDisplay) NcorrectedDisplay.style.display = 'none';
+                            if (NcorrectedUnitElement) NcorrectedUnitElement.style.display = 'none';
+                        }
+                        break;
+                    case 'LCT-N':
+                        if (L > 0 && C > 0 && T > 0) {
+                            // 3LCT-N 路径算法
+                            // 在调试窗口标题位置居中显示 3-LCT-N
+                            if (calculationDirectionDisplay) {
+                                calculationDirectionDisplay.textContent = '3-LCT-N';
+                            }
+                            
+                            E = L * (T / 60);
+                            const calculatedN = E / ((C / 1000) * V);
+                            NInput.value = Math.round(calculatedN);
+                            const compResult = fComp(cellType, L, V, C, calculatedN);
+                            F = compResult.F;
+                            I = compResult.I;
+                            CL = compResult.CL;
+                            Ename = E / F;
+                            Ncorrected = Ename / ((C / 1000) * V);
+                            
+                            // 3LCT-N 路径特殊显示效果
+                            // L, C, T 显示改为浅灰色
+                            if (LInput) LInput.style.color = '#999';
+                            if (CInput) CInput.style.color = '#999';
+                            if (TInput) TInput.style.color = '#999';
+                            
+                            // Ncorrected显示改为红色，N显示改为浅红色
+                            if (NcorrectedDisplay) {
+                                NcorrectedDisplay.style.display = 'block';
+                                NcorrectedDisplay.style.color = 'red';
+                            }
+                            if (NcorrectedUnitElement) NcorrectedUnitElement.style.display = 'inline';
+                            if (NInput) NInput.style.color = '#ff9999';
+                            
+                            // Tcorrected，Lcorrected，Ccorrected不显示
+                            if (TcorrectedDisplay) TcorrectedDisplay.style.display = 'none';
+                            if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                            if (LcorrectedDisplay) LcorrectedDisplay.style.display = 'none';
+                            if (LcorrectedUnitElement) LcorrectedUnitElement.style.display = 'none';
+                            if (CcorrectedDisplay) CcorrectedDisplay.style.display = 'none';
+                            if (CcorrectedUnitElement) CcorrectedUnitElement.style.display = 'none';
+                        }
+                        break;
+                    case 'CTN-L':
+                        if (C > 0 && T > 0 && N > 0) {
+                            // 4CTN-L 路径算法
+                            // 在调试窗口标题位置居中显示 4-CTN-L
+                            if (calculationDirectionDisplay) {
+                                calculationDirectionDisplay.textContent = '4-CTN-L';
+                            }
+                            
+                            Ename = (C / 1000) * N * V;
+                            const calculatedL = Ename / (T / 60);
+                            LInput.value = calculatedL.toFixed(1);
+                            const compResult = fComp(cellType, calculatedL, V, C, N);
+                            F = compResult.F;
+                            I = compResult.I;
+                            CL = compResult.CL;
+                            E = Ename * F;
+                            Lcorrected = E / (T / 60);
+                            
+                            // 4CTN-L 路径特殊显示效果
+                            // N, C, T 显示改为浅灰色
+                            if (NInput) NInput.style.color = '#999';
+                            if (CInput) CInput.style.color = '#999';
+                            if (TInput) TInput.style.color = '#999';
+                            
+                            // Lcorrected显示改为红色，L显示改为浅红色
+                            if (LcorrectedDisplay) {
+                                LcorrectedDisplay.style.display = 'block';
+                                LcorrectedDisplay.style.color = 'red';
+                            }
+                            if (LcorrectedUnitElement) LcorrectedUnitElement.style.display = 'inline';
+                            if (LInput) LInput.style.color = '#ff9999';
+                            
+                            // Tcorrected，Ncorrected，Ccorrected不显示
+                            if (TcorrectedDisplay) TcorrectedDisplay.style.display = 'none';
+                            if (TcorrectedUnitElement) TcorrectedUnitElement.style.display = 'none';
+                            if (NcorrectedDisplay) NcorrectedDisplay.style.display = 'none';
+                            if (NcorrectedUnitElement) NcorrectedUnitElement.style.display = 'none';
+                            if (CcorrectedDisplay) CcorrectedDisplay.style.display = 'none';
+                            if (CcorrectedUnitElement) CcorrectedUnitElement.style.display = 'none';
+                        }
+                        break;
+                }
                 
                 // 更新显示
                 if (FDisplay) {
@@ -2237,26 +2624,6 @@
                 
                 if (LcorrectedDisplay) {
                     LcorrectedDisplay.textContent = Lcorrected.toFixed(1);
-                }
-                
-                // 控制Tcorrected单位的显示
-                if (TcorrectedUnitElement) {
-                    TcorrectedUnitElement.style.display = 'inline';
-                }
-                
-                // 控制Ncorrected单位的显示
-                if (NcorrectedUnitElement) {
-                    NcorrectedUnitElement.style.display = 'inline';
-                }
-                
-                // 控制Ccorrected单位的显示
-                if (CcorrectedUnitElement) {
-                    CcorrectedUnitElement.style.display = 'inline';
-                }
-                
-                // 控制Lcorrected单位的显示
-                if (LcorrectedUnitElement) {
-                    LcorrectedUnitElement.style.display = 'inline';
                 }
                 
                 // 更新调试窗口
@@ -2973,92 +3340,9 @@
             
             dfxButton.addEventListener('mousedown', function() {
                 longPressTimer = setTimeout(function() {
-                    // 清空DfX子屏幕上的输入框和显示框
-                    const TInput = document.getElementById('T');
-                    const NInput = document.getElementById('N_dfx');
-                    const CInput = document.getElementById('C_dfx');
-                    const LInput = document.getElementById('L_dfx');
-                    const FDisplay = document.getElementById('F');
-                    const EnameDisplay = document.getElementById('Ename');
-                    const EDisplay = document.getElementById('E');
-                    const NcorrectedDisplay = document.getElementById('Ncorrected');
-                    const NcorrectedUnitElement = document.getElementById('Ncorrected-unit');
-                    const CcorrectedDisplay = document.getElementById('Ccorrected');
-                    const CcorrectedUnitElement = document.getElementById('Ccorrected-unit');
-                    const LcorrectedDisplay = document.getElementById('Lcorrected');
-                    const LcorrectedUnitElement = document.getElementById('Lcorrected-unit');
-                    const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
-                    
-                    // 清空输入框
-                    if (TInput) TInput.value = '';
-                    if (NInput) NInput.value = '';
-                    if (CInput) CInput.value = '';
-                    if (LInput) LInput.value = '';
-                    
-                    // 清空显示框
-                    if (FDisplay) FDisplay.textContent = '1.00';
-                    if (EnameDisplay) EnameDisplay.textContent = '0.0';
-                    if (EDisplay) EDisplay.textContent = '0.0';
-                    if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0.0';
-                    if (CcorrectedDisplay) CcorrectedDisplay.textContent = '0.0';
-                    if (LcorrectedDisplay) LcorrectedDisplay.textContent = '0.0';
-                    
-                    // 清空计算方向
-                    if (calculationDirectionDisplay) calculationDirectionDisplay.textContent = '';
-                    
-                    // 重置当前解题方向
-                    if (window.dfxCurrentCalculationDirection !== undefined) {
-                        window.dfxCurrentCalculationDirection = '';
-                    }
-                    
-                    // 重置当前计算路径
-                    if (window.dfxCurrentCalculationPath !== undefined) {
-                        window.dfxCurrentCalculationPath = '';
-                    }
-                    
-                    // 重置Voltage参数
-                    window.Voltage = 3.7;
-                    const voltageButton = document.getElementById('voltage-button');
-                    if (voltageButton) {
-                        voltageButton.textContent = '3.7V';
-                    }
-                    
-                    // 重置CellType参数
-                    window.CellType = 0;
-                    const cellTypeButton = document.getElementById('cell-type-button');
-                    if (cellTypeButton) {
-                        cellTypeButton.textContent = '18650';
-                    }
-                    
-                    // 恢复各标签及数据的原始颜色和粗细
-                    const labels = document.querySelectorAll('.card-content div:nth-child(1)');
-                    labels.forEach(label => {
-                        label.style.fontWeight = 'normal';
-                        label.style.color = '#333';
-                    });
-                    
-                    const displays = document.querySelectorAll('.card-content input, .card-content div[id$="Display"], .card-content div[id="E"], .card-content div[id="Ename"], .card-content div[id="F"]');
-                    displays.forEach(display => {
-                        display.style.fontWeight = 'normal';
-                        display.style.color = '';
-                    });
-                    
-                    // 更新调试窗口
-                    document.getElementById('dfx-debug-T').textContent = '0.0';
-                    document.getElementById('dfx-debug-Tcorrected').textContent = '0.0';
-                    document.getElementById('dfx-debug-N').textContent = '0';
-                    document.getElementById('dfx-debug-Ncorrected').textContent = '0.0';
-                    document.getElementById('dfx-debug-C').textContent = '0';
-                    document.getElementById('dfx-debug-L').textContent = '0.0';
-                    document.getElementById('dfx-debug-Voltage').textContent = '3.7';
-                    document.getElementById('dfx-debug-CellType').textContent = '0 (18650)';
-                    document.getElementById('dfx-debug-F').textContent = '1.00';
-                    document.getElementById('dfx-debug-I').textContent = '0.00';
-                    document.getElementById('dfx-debug-Ename').textContent = '0.0';
-                    document.getElementById('dfx-debug-CL').textContent = '0.00';
-                    document.getElementById('dfx-debug-E').textContent = '0.0';
-                    document.getElementById('dfx-debug-Lcorrected').textContent = '0.0';
-                    document.getElementById('dfx-debug-Ccorrected').textContent = '0.0';
+                    // 执行数据清零
+                    window.initDfXSubScreen();
+                    console.log('DfX button long press - data cleared');
                 }, 1000);
             });
             
@@ -3073,55 +3357,9 @@
             // 触摸事件支持
             dfxButton.addEventListener('touchstart', function() {
                 longPressTimer = setTimeout(function() {
-                    // 清空DfX子屏幕上的输入框和显示框
-                    const TInput = document.getElementById('T');
-                    const NInput = document.getElementById('N_dfx');
-                    const CInput = document.getElementById('C_dfx');
-                    const LInput = document.getElementById('L_dfx');
-                    const FDisplay = document.getElementById('F');
-                    const EnameDisplay = document.getElementById('Ename');
-                    const EDisplay = document.getElementById('E');
-                    const NcorrectedDisplay = document.getElementById('Ncorrected');
-                    const NcorrectedUnitElement = document.getElementById('Ncorrected-unit');
-                    const CcorrectedDisplay = document.getElementById('Ccorrected');
-                    const CcorrectedUnitElement = document.getElementById('Ccorrected-unit');
-                    const LcorrectedDisplay = document.getElementById('Lcorrected');
-                    const LcorrectedUnitElement = document.getElementById('Lcorrected-unit');
-                    const calculationDirectionDisplay = document.getElementById('dfx-calculation-direction');
-                    
-                    // 清空输入框
-                    if (TInput) TInput.value = '';
-                    if (NInput) NInput.value = '';
-                    if (CInput) CInput.value = '';
-                    if (LInput) LInput.value = '';
-                    
-                    // 清空显示框
-                    if (FDisplay) FDisplay.textContent = '1.00';
-                    if (EnameDisplay) EnameDisplay.textContent = '0.0';
-                    if (EDisplay) EDisplay.textContent = '0.0';
-                    if (NcorrectedDisplay) NcorrectedDisplay.textContent = '0.0';
-                    if (CcorrectedDisplay) CcorrectedDisplay.textContent = '0.0';
-                    if (LcorrectedDisplay) LcorrectedDisplay.textContent = '0.0';
-                    
-                    // 清空计算方向
-                    if (calculationDirectionDisplay) calculationDirectionDisplay.textContent = '';
-                    
-                    // 更新调试窗口
-                    document.getElementById('dfx-debug-T').textContent = '0.0';
-                    document.getElementById('dfx-debug-Tcorrected').textContent = '0.0';
-                    document.getElementById('dfx-debug-N').textContent = '0';
-                    document.getElementById('dfx-debug-Ncorrected').textContent = '0.0';
-                    document.getElementById('dfx-debug-C').textContent = '0';
-                    document.getElementById('dfx-debug-L').textContent = '0.0';
-                    document.getElementById('dfx-debug-Voltage').textContent = '3.7';
-                    document.getElementById('dfx-debug-CellType').textContent = '0 (18650)';
-                    document.getElementById('dfx-debug-F').textContent = '1.00';
-                    document.getElementById('dfx-debug-I').textContent = '0.00';
-                    document.getElementById('dfx-debug-Ename').textContent = '0.0';
-                    document.getElementById('dfx-debug-CL').textContent = '0.00';
-                    document.getElementById('dfx-debug-E').textContent = '0.0';
-                    document.getElementById('dfx-debug-Lcorrected').textContent = '0.0';
-                    document.getElementById('dfx-debug-Ccorrected').textContent = '0.0';
+                    // 执行数据清零
+                    window.initDfXSubScreen();
+                    console.log('DfX button long press - data cleared');
                 }, 1000);
             });
             
@@ -3154,6 +3392,8 @@
                         resetLoadCards();
                     } else if (index === 1) {
                         document.querySelector('.subscreen-area.DfX').style.display = 'block';
+                        // 从其他子屏幕切换到DfX子屏幕时执行数据清零
+                        window.initDfXSubScreen();
                     } else if (index === 2) {
                         document.querySelector('.subscreen-area.Settings').style.display = 'block';
                     }
