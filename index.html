@@ -975,7 +975,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v12.7</span>
+            Battery Run Time Calculator <span id="version">v12.10</span>
         </div>
         
         <!-- 按键区 -->
@@ -1353,7 +1353,9 @@
                         <div>Voltage: <span id="dfx-debug-Voltage">0</span></div>
                         <div>CellType: <span id="dfx-debug-CellType">0</span></div>
                         <div>F: <span id="dfx-debug-F">0</span></div>
+                        <div>I: <span id="dfx-debug-I">0</span></div>
                         <div>Ename: <span id="dfx-debug-Ename">0</span></div>
+                        <div>CL: <span id="dfx-debug-CL">0</span></div>
                         <div>E: <span id="dfx-debug-E">0</span></div>
                     </div>
                 </div>
@@ -2088,6 +2090,9 @@
             // 存储当前解题方向
             window.dfxCurrentCalculationDirection = '';
             
+            // 存储当前计算路径
+            window.dfxCurrentCalculationPath = '';
+            
             // 初始化Voltage参数
             window.Voltage = 3.7;
             
@@ -2183,29 +2188,34 @@
                 // 只有当当前解题方向为空时，才尝试确定新的解题方向
                 if (window.dfxCurrentCalculationDirection === '') {
                     // 检查输入组合
-                    if (L > 0 && T > 0 && N > 0) {
-                        // LTN -> C
-                        calculationDirection = 'LTN -> C';
-                        const calculatedC = (L * T) / (N * V * 60);
-                        CInput.value = Math.round(calculatedC);
-                    } else if (L > 0 && N > 0 && C > 0) {
+                    if (L > 0 && N > 0 && C > 0) {
                         // LNC -> T
-                        calculationDirection = 'LNC -> T';
+                        calculationDirection = 'LNC-T';
+                        window.dfxCurrentCalculationPath = '1LNC-T';
                         const calculatedT = (N * V * C * 60) / L;
                         TInput.value = calculatedT.toFixed(1);
+                    } else if (L > 0 && T > 0 && N > 0) {
+                        // LTN -> C
+                        calculationDirection = 'LTN-C';
+                        window.dfxCurrentCalculationPath = '2LTN-C';
+                        const calculatedC = (L * T) / (N * V * 60);
+                        CInput.value = Math.round(calculatedC);
                     } else if (L > 0 && C > 0 && T > 0) {
                         // LCT -> N
-                        calculationDirection = 'LCT -> N';
+                        calculationDirection = 'LCT-N';
+                        window.dfxCurrentCalculationPath = '3LCT-N';
                         const calculatedN = (L * T) / (V * C * 60);
                         NInput.value = Math.round(calculatedN);
                     } else if (C > 0 && T > 0 && N > 0) {
                         // CTN -> L
-                        calculationDirection = 'CTN -> L';
+                        calculationDirection = 'CTN-L';
+                        window.dfxCurrentCalculationPath = '4CTN-L';
                         const calculatedL = (N * V * C) / T * 60;
                         LInput.value = calculatedL.toFixed(1);
                     } else {
                         // 输入不足，清空计算方向
                         calculationDirection = '';
+                        window.dfxCurrentCalculationPath = '';
                     }
                     
                     // 更新当前解题方向
@@ -2213,25 +2223,25 @@
                 } else {
                     // 如果已经有解题方向，根据方向进行计算
                     switch (window.dfxCurrentCalculationDirection) {
-                        case 'LTN -> C':
+                        case 'LTN-C':
                             if (L > 0 && T > 0 && N > 0) {
                                 const calculatedC = (L * T) / (N * V * 60);
                                 CInput.value = Math.round(calculatedC);
                             }
                             break;
-                        case 'LNC -> T':
+                        case 'LNC-T':
                             if (L > 0 && N > 0 && C > 0) {
                                 const calculatedT = (N * V * C * 60) / L;
                                 TInput.value = calculatedT.toFixed(1);
                             }
                             break;
-                        case 'LCT -> N':
+                        case 'LCT-N':
                             if (L > 0 && C > 0 && T > 0) {
                                 const calculatedN = (L * T) / (V * C * 60);
                                 NInput.value = Math.round(calculatedN);
                             }
                             break;
-                        case 'CTN -> L':
+                        case 'CTN-L':
                             if (C > 0 && T > 0 && N > 0) {
                                 const calculatedL = (N * V * C) / T * 60;
                                 LInput.value = calculatedL.toFixed(1);
@@ -2271,11 +2281,19 @@
                 
                 // 更新显示
                 if (TcorrectedDisplay) {
-                    TcorrectedDisplay.textContent = Tcorrected.toFixed(1);
+                    if (Tcorrected === 0 || Math.abs(Tcorrected - T) < 0.1) {
+                        TcorrectedDisplay.textContent = '';
+                    } else {
+                        TcorrectedDisplay.textContent = Tcorrected.toFixed(1);
+                    }
                 }
                 
                 if (NcorrectedDisplay) {
-                    NcorrectedDisplay.textContent = Ncorrected;
+                    if (Ncorrected === 0 || Ncorrected === N) {
+                        NcorrectedDisplay.textContent = '';
+                    } else {
+                        NcorrectedDisplay.textContent = Ncorrected;
+                    }
                 }
                 
                 if (FDisplay) {
@@ -2290,21 +2308,21 @@
                     EDisplay.textContent = E.toFixed(1);
                 }
                 
-                if (VDisplay) {
-                    VDisplay.textContent = V.toFixed(1);
-                }
-                
                 // 控制Tcorrected单位的显示
                 if (TcorrectedUnitElement) {
-                    TcorrectedUnitElement.style.display = Tcorrected === 0 ? 'none' : 'inline';
+                    if (Tcorrected === 0 || Math.abs(Tcorrected - T) < 0.1) {
+                        TcorrectedUnitElement.style.display = 'none';
+                    } else {
+                        TcorrectedUnitElement.style.display = 'inline';
+                    }
                 }
                 
                 // 更新调试窗口
-                updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E);
+                updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E, I, CL);
             }
             
             // 更新DfX调试窗口
-            function updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E) {
+            function updateDfXDebugWindow(T, Tcorrected, N, Ncorrected, C, L, V, cellType, F, Ename, E, I, CL) {
                 document.getElementById('dfx-debug-T').textContent = T.toFixed(1);
                 document.getElementById('dfx-debug-Tcorrected').textContent = Tcorrected.toFixed(1);
                 document.getElementById('dfx-debug-N').textContent = N;
@@ -2312,9 +2330,24 @@
                 document.getElementById('dfx-debug-C').textContent = C;
                 document.getElementById('dfx-debug-L').textContent = L.toFixed(1);
                 document.getElementById('dfx-debug-Voltage').textContent = V.toFixed(1);
-                document.getElementById('dfx-debug-CellType').textContent = cellType ? '1 (Tabless)' : '0 (Tabbed)';
+                // 显示CellType的所有三个值
+                let cellTypeText = '';
+                switch (window.CellType) {
+                    case 0:
+                        cellTypeText = '0 (18650)';
+                        break;
+                    case 1:
+                        cellTypeText = '1 (18650 Tabless)';
+                        break;
+                    case 2:
+                        cellTypeText = '2 (No Comp)';
+                        break;
+                }
+                document.getElementById('dfx-debug-CellType').textContent = cellTypeText;
                 document.getElementById('dfx-debug-F').textContent = (Math.floor(F * 100) / 100).toFixed(2);
+                document.getElementById('dfx-debug-I').textContent = I.toFixed(2);
                 document.getElementById('dfx-debug-Ename').textContent = Ename.toFixed(1);
+                document.getElementById('dfx-debug-CL').textContent = CL.toFixed(2);
                 document.getElementById('dfx-debug-E').textContent = E.toFixed(1);
             }
             
@@ -2341,10 +2374,10 @@
                 function updateCellTypeButton() {
                     switch (window.CellType) {
                         case 0:
-                            cellTypeButton.textContent = 'Tabbed Cells';
+                            cellTypeButton.textContent = '18650';
                             break;
                         case 1:
-                            cellTypeButton.textContent = 'Tabless Cells';
+                            cellTypeButton.textContent = '18650 Tabless';
                             break;
                         case 2:
                             cellTypeButton.textContent = 'No Comp';
@@ -3031,6 +3064,11 @@
                         window.dfxCurrentCalculationDirection = '';
                     }
                     
+                    // 重置当前计算路径
+                    if (window.dfxCurrentCalculationPath !== undefined) {
+                        window.dfxCurrentCalculationPath = '';
+                    }
+                    
                     // 重置Voltage参数
                     window.Voltage = 3.7;
                     const voltageButton = document.getElementById('voltage-button');
@@ -3042,8 +3080,21 @@
                     window.CellType = 0;
                     const cellTypeButton = document.getElementById('cell-type-button');
                     if (cellTypeButton) {
-                        cellTypeButton.textContent = 'Tabbed Cells';
+                        cellTypeButton.textContent = '18650';
                     }
+                    
+                    // 恢复各标签及数据的原始颜色和粗细
+                    const labels = document.querySelectorAll('.card-content div:nth-child(1)');
+                    labels.forEach(label => {
+                        label.style.fontWeight = 'normal';
+                        label.style.color = '#333';
+                    });
+                    
+                    const displays = document.querySelectorAll('.card-content input, .card-content div[id$="Display"], .card-content div[id="E"], .card-content div[id="Ename"], .card-content div[id="F"]');
+                    displays.forEach(display => {
+                        display.style.fontWeight = 'normal';
+                        display.style.color = '';
+                    });
                     
                     // 更新调试窗口
                     document.getElementById('dfx-debug-T').textContent = '0.0';
@@ -3052,6 +3103,13 @@
                     document.getElementById('dfx-debug-Ncorrected').textContent = '0';
                     document.getElementById('dfx-debug-C').textContent = '0';
                     document.getElementById('dfx-debug-L').textContent = '0.0';
+                    document.getElementById('dfx-debug-Voltage').textContent = '3.7';
+                    document.getElementById('dfx-debug-CellType').textContent = '0 (18650)';
+                    document.getElementById('dfx-debug-F').textContent = '1.00';
+                    document.getElementById('dfx-debug-I').textContent = '0.00';
+                    document.getElementById('dfx-debug-Ename').textContent = '0.0';
+                    document.getElementById('dfx-debug-CL').textContent = '0.00';
+                    document.getElementById('dfx-debug-E').textContent = '0.0';
                 }, 1000);
             });
             
@@ -3105,6 +3163,13 @@
                     document.getElementById('dfx-debug-Ncorrected').textContent = '0';
                     document.getElementById('dfx-debug-C').textContent = '0';
                     document.getElementById('dfx-debug-L').textContent = '0.0';
+                    document.getElementById('dfx-debug-Voltage').textContent = '3.7';
+                    document.getElementById('dfx-debug-CellType').textContent = '0 (18650)';
+                    document.getElementById('dfx-debug-F').textContent = '1.00';
+                    document.getElementById('dfx-debug-I').textContent = '0.00';
+                    document.getElementById('dfx-debug-Ename').textContent = '0.0';
+                    document.getElementById('dfx-debug-CL').textContent = '0.00';
+                    document.getElementById('dfx-debug-E').textContent = '0.0';
                 }, 1000);
             });
             

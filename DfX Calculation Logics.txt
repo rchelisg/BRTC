@@ -1,0 +1,104 @@
+DfX Calculation Logics
+
+
+当 L, N, C 有输入时，在调试窗口标题位置显示 LNC-T，后续运算采用 1LNC-T 路径
+当 L, T, N 有输入时，在调试窗口标题位置显示 LTN-C，后续运算采用 2LTN-C 路径
+当 L, C, T 有输入时，在调试窗口标题位置显示 LCT-N，后续运算采用 3LCT-N 路径
+当 C, T, N 有输入时，在调试窗口标题位置显示 CTN-L，后续运算采用 4CTN-L 路径
+
+路径一旦建立，无论子屏幕上数据怎么改变，都必须维持这个路径，直到数据清零
+数据清零后要重新刷新Tcorrected，Ncorrected以及Tcorrected单位的显示，即
+  当Tcorrected，Ncorrected为0或者Tcorrected=T，Ncorrected=N时，既不显示数据也不显示单位
+
+长按DfX按钮将数据清零，同时恢复各标签及数据原先的颜色和粗细
+
+计算需要用到以下变量:
+L, N, C, T - 这些来自于用户输入，同时也可能成为计算输出值
+Voltage，CellType - 对应于两个循环按钮
+I， CL - 中间变量
+E, Ename, F, Tcorrected, Ncorrected - 计算输出值
+
+
+1LNC-T路径算法：
+
+Ncorrented 不显示
+Tcorrected 不显示
+
+Time标签变粗体，颜色变成红色，T显示变红色
+
+Cells，Capacity，Load标签变浅灰色
+
+N，C，L显示变浅灰色
+
+Ename = N*(C/1000)*V
+
+I = Ename/L
+
+CL = I/(C/1000)
+
+if( compensate-c ) // load compensation enabled
+
+{
+
+if( cell-type ) // tables cells
+
+{
+
+F = (0.2/CL)^0.015
+
+}
+
+else // tabbed cells
+
+{
+
+F = (0.2/CL)^0.04
+
+}
+
+}
+
+else // load compensation disabled
+
+{
+
+F = 1
+
+}
+
+E = Ename * F
+
+T = 60*E/L
+
+//
+
+
+
+
+
+
+
+
+
+
+
+
+
+if( compensate-c )		// load compensation enabled
+{
+  if( cell-type )		// tables cells
+  {
+    F = (0.2/CL)^0.015
+  }
+  else				// tabbed cells
+  {
+    F = (0.2/CL)^0.04
+  }
+}
+else				// load compensation disabled
+{
+  F = 1
+}
+
+
+
