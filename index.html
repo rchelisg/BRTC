@@ -975,17 +975,18 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v14.2</span>
+            Battery Run Time Calculator <span id="version">v15.5</span>
         </div>
         
         <!-- 按键区 -->
         <div class="button-area">
             <div class="button active">Calc</div>
             <div class="button">D<i>f</i>X</div>
-            <div class="button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <div class="button" style="display: flex; align-items: center; justify-content: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
             </div>
         </div>
@@ -993,6 +994,21 @@
         <!-- 子屏幕区域 -->
         <div class="subscreen-area Calc" style="display: block;">
             <div class="card-container">
+                <!-- 电压和电池类型按钮 -->
+                <div class="button-container" style="width: 100%; display: flex; align-items: center; margin-top: 8px; margin-bottom: 12px;">
+                    <div style="width: 80px; text-align: right; font-size: 14px; color: #333;">V</div>
+                    <div style="width: 70px; margin-left: 5px;">
+                        <button id="v1-button" style="width: 100%; padding: 4px; font-size: 14px; background-color: #FFF9C4; border: 1px solid #FFD54F; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; text-align: center;">3.7V</button>
+                    </div>
+                    <div style="width: 50px; margin-left: 5px; text-align: right; font-size: 14px; color: #333;">Type</div>
+                    <div style="width: 120px; margin-left: 5px;">
+                        <button id="cell-type1-button" style="width: 100%; padding: 4px; font-size: 14px; background-color: #FFF9C4; border: 1px solid #FFD54F; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; text-align: center; white-space: nowrap;">Tabbed Cells</button>
+                    </div>
+                    <div style="width: 50px; margin-left: 5px; text-align: left;">
+                        <span style="font-size: 12px; color: #666;"></span>
+                    </div>
+                </div>
+                
                 <!-- 主卡片：PACK -->
                 <div class="card" id="pack-card" data-type="pack" style="background-color: #BBDEFB;">
                     <div class="card-content">
@@ -1174,6 +1190,7 @@
                         <div>Cmin: <span id="debug-Cmin">0</span></div>
                         <div>Cmax: <span id="debug-Cmax">0</span></div>
                         <div>V: <span id="debug-V">0</span></div>
+                        <div>V1: <span id="debug-V1">0</span></div>
                         <div>summary-L: <span id="debug-summary-L">0</span></div>
                         <div>summary-Lmin: <span id="debug-summary-Lmin">0</span></div>
                         <div>summary-Lmax: <span id="debug-summary-Lmax">0</span></div>
@@ -1185,6 +1202,7 @@
                         <div>CLmin: <span id="debug-CLmin">0</span></div>
                         <div>CLmax: <span id="debug-CLmax">0</span></div>
                         <div>Cell Type: <span id="debug-cell-type">0</span></div>
+                        <div>CellType1: <span id="debug-cell-type1">0</span></div>
                         <div>Compensate C: <span id="debug-compensate-c">false</span></div>
                         <div>E: <span id="debug-E">0</span></div>
                         <div>Emin: <span id="debug-Emin">0</span></div>
@@ -1367,37 +1385,7 @@
         <!-- Settings子屏幕 -->
         <div class="subscreen-area Settings" style="display: none;">
             <div class="card-container">
-                <!-- Settings子屏幕内容 -->
-                <div style="padding: 20px;">
-                    <!-- 设置项 -->
-                    <div class="settings-section">
-                        <div class="setting-item">
-                            <label>Nominal Voltage</label>
-                            <div class="radio-options">
-                                <label><input type="radio" name="voltage" value="3.7" checked> 3.7V</label>
-                                <label style="margin-left: -60px;"><input type="radio" name="voltage" value="3.6"> 3.6V</label>
-                            </div>
-                        </div>
-                        
-                        <div class="setting-item">
-                            <label for="compensate-c" style="min-width: 150px;">Compensate C on Load</label>
-                            <input type="checkbox" id="compensate-c" checked style="position: relative; left: -105px;">
-                        </div>
-                        
-                        <div class="setting-item" id="cell-type-section">
-                            <label>Cell Type</label>
-                            <div class="radio-options">
-                                <label style="margin-right: -30px;"><input type="radio" name="cell-type" value="0" checked> Tabbed Cells</label>
-                                <label style="margin-right: -40px;"><input type="radio" name="cell-type" value="1"> Tabless Cells</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- RESET按钮 -->
-                    <div style="margin-top: 40px; text-align: center;">
-                        <button id="reset-button" class="reset-button">RESET</button>
-                    </div>
-                </div>
+                <!-- Settings子屏幕内容已删除 -->
             </div>
         </div>
         
@@ -1633,178 +1621,7 @@
         }
         
         // 初始化设置功能
-        function initSettingsFunctions() {
-            const resetButton = document.getElementById('reset-button');
-            const compensateCheckbox = document.getElementById('compensate-c');
-            const cellTypeSection = document.getElementById('cell-type-section');
-            
-            // 全局变量
-            window.V = 3.7; // 默认3.7V
-            window.Comp = 1; // 默认1（on）
-            window.CellType = 0; // 默认0（tabbed cells）
-            
-            // 处理Compensate C on Load复选框变化
-            if (compensateCheckbox) {
-                compensateCheckbox.addEventListener('change', function() {
-                    window.Comp = this.checked ? 1 : 0;
-                    
-                    // 根据Comp值显示或隐藏电池类型设置
-                    if (cellTypeSection) {
-                        if (window.Comp === 1) {
-                            cellTypeSection.style.display = 'flex';
-                        } else {
-                            cellTypeSection.style.display = 'none';
-                        }
-                    }
-                    
-                    // 更新CellTypeDisplay显示
-                    updateCellTypeDisplay();
-                });
-            }
-            
-            // 处理电压单选按钮变化
-            const voltageRadios = document.querySelectorAll('input[name="voltage"]');
-            voltageRadios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    window.V = parseFloat(this.value);
-                    
-                    // 同步V参数到DfX子屏幕
-                    const VDisplay = document.getElementById('V_dfx');
-                    if (VDisplay) {
-                        VDisplay.textContent = window.V || 0;
-                    }
-                });
-            });
-            
-            // 处理电池类型单选按钮变化
-            const cellTypeRadios = document.querySelectorAll('input[name="cell-type"]');
-            cellTypeRadios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    window.CellType = parseInt(this.value);
-                    updateCellTypeDisplay();
-                });
-            });
-            
-            // 更新CellTypeDisplay显示
-            function updateCellTypeDisplay() {
-                const CellTypeDisplay = document.getElementById('CellTypeDisplay');
-                if (CellTypeDisplay) {
-                    if (window.Comp === 0) {
-                        CellTypeDisplay.textContent = '';
-                    } else {
-                        if (window.CellType === 0) {
-                            CellTypeDisplay.textContent = 'Tabbed Cells';
-                        } else {
-                            CellTypeDisplay.textContent = 'Tabless Cells';
-                        }
-                    }
-                }
-            }
-            
-            // 初始化时更新一次显示
-            updateCellTypeDisplay();
-            
-            // 自定义确认对话框函数
-            function showConfirmDialog(message, confirmCallback, cancelCallback) {
-                // 创建对话框元素
-                const dialog = document.createElement('div');
-                dialog.className = 'custom-dialog';
-                
-                // 对话框内容
-                dialog.innerHTML = `
-                    <div class="dialog-content">
-                        <div class="dialog-message">${message}</div>
-                        <div class="dialog-buttons">
-                            <button class="dialog-button confirm">OK</button>
-                            <button class="dialog-button cancel">Cancel</button>
-                        </div>
-                    </div>
-                `;
-                
-                // 添加到页面
-                document.body.appendChild(dialog);
-                
-                // 确认按钮点击事件
-                const confirmButton = dialog.querySelector('.dialog-button.confirm');
-                confirmButton.addEventListener('click', function() {
-                    document.body.removeChild(dialog);
-                    if (confirmCallback) confirmCallback();
-                });
-                
-                // 取消按钮点击事件
-                const cancelButton = dialog.querySelector('.dialog-button.cancel');
-                cancelButton.addEventListener('click', function() {
-                    document.body.removeChild(dialog);
-                    if (cancelCallback) cancelCallback();
-                });
-                
-                // 点击对话框外部关闭
-                dialog.addEventListener('click', function(e) {
-                    if (e.target === dialog) {
-                        document.body.removeChild(dialog);
-                        if (cancelCallback) cancelCallback();
-                    }
-                });
-            }
-            
-            // 自定义提示对话框函数
-            function showAlertDialog(message) {
-                // 创建对话框元素
-                const dialog = document.createElement('div');
-                dialog.className = 'custom-dialog';
-                
-                // 对话框内容
-                dialog.innerHTML = `
-                    <div class="dialog-content">
-                        <div class="dialog-message">${message}</div>
-                        <div class="dialog-buttons">
-                            <button class="dialog-button confirm">OK</button>
-                        </div>
-                    </div>
-                `;
-                
-                // 添加到页面
-                document.body.appendChild(dialog);
-                
-                // OK按钮点击事件
-                const okButton = dialog.querySelector('.dialog-button.confirm');
-                okButton.addEventListener('click', function() {
-                    document.body.removeChild(dialog);
-                });
-            }
-            
-            // 处理RESET按钮点击
-            if (resetButton) {
-                resetButton.addEventListener('click', function() {
-                    // 显示自定义确认对话框
-                    showConfirmDialog(
-                        'Are you sure you want to reset all settings to default values?',
-                        function() {
-                            // 恢复默认设置
-                            document.querySelector('input[name="voltage"][value="3.7"]').checked = true;
-                            document.getElementById('compensate-c').checked = true;
-                            document.querySelector('input[name="cell-type"][value="0"]').checked = true;
-                            
-                            // 更新全局变量
-                            window.V = 3.7;
-                            window.Comp = 1;
-                            window.CellType = 0;
-                            
-                            // 更新CellTypeDisplay显示
-                            updateCellTypeDisplay();
-                            
-                            // 显示电池类型设置
-                            if (cellTypeSection) {
-                                cellTypeSection.style.display = 'flex';
-                            }
-                            
-                            // 显示重置成功提示
-                            showAlertDialog('Settings have been reset to default values');
-                        }
-                    );
-                });
-            }
-        }
+        // initSettingsFunctions函数已删除
         
         // 初始化调试窗口拖拽功能
         function initDebugWindowDrag() {
@@ -2115,6 +1932,11 @@
             
             // 初始化CellType参数
             window.CellType = 0;
+            
+            // 初始化V1参数
+            window.V1 = 3.7;
+            // 初始化CellType1参数
+            window.CellType1 = 0;
             
             // 处理T输入（最多4位，小数点后最多1位）
             function handleTimeInput(input) {
@@ -2773,7 +2595,7 @@
                 // 为C输入框添加失焦事件
                 CInput.addEventListener('blur', function() {
                     if (!this.value) {
-                        this.value = '3000';
+                        this.value = '0';
                     } else {
                         validatePackInput(this, packCard);
                     }
@@ -2799,7 +2621,7 @@
                 // 为Cmin输入框添加失焦事件
                 CminInput.addEventListener('blur', function() {
                     if (!this.value) {
-                        this.value = '3000';
+                        this.value = '0';
                     } else {
                         validatePackInput(this, packCard);
                     }
@@ -2825,7 +2647,7 @@
                 // 为Cmax输入框添加失焦事件
                 CmaxInput.addEventListener('blur', function() {
                     if (!this.value) {
-                        this.value = '3000';
+                        this.value = '0';
                     } else {
                         validatePackInput(this, packCard);
                     }
@@ -3415,7 +3237,7 @@
             const Cmax = CmaxInput.value !== '' ? parseFloat(CmaxInput.value) : 0;
             
             // 获取Settings参数
-            const V = window.V || 3.7;
+            const V = window.V1 || 3.7;
             
             // 获取LOAD卡片组小结参数
             const summaryL = parseFloat(document.getElementById('summary-L').textContent) || 0;
@@ -3449,11 +3271,10 @@
             let Fmin = 1;
             let Fmax = 1;
             
-            // 检查是否启用负载补偿
-            const compensateC = document.getElementById('compensate-c').checked;
+            // 检查是否启用负载补偿 - 通过检查CellType1，如果数值0或者1，则启用负载补偿
+            const compensateC = window.CellType1 === 0 || window.CellType1 === 1;
             // 获取cell-type值
-            const cellTypeRadio = document.querySelector('input[name="cell-type"]:checked');
-            const cellType = cellTypeRadio ? parseInt(cellTypeRadio.value) === 1 : false;
+            const cellType = window.CellType1 === 1;
             
             if (compensateC) {
                 if (cellType) {
@@ -3517,6 +3338,7 @@
                 document.getElementById('debug-Cmin').textContent = formatNumber(Cmin, Math.round);
                 document.getElementById('debug-Cmax').textContent = formatNumber(Cmax, Math.round);
                 document.getElementById('debug-V').textContent = formatNumber(V, (n) => n.toFixed(1));
+                document.getElementById('debug-V1').textContent = formatNumber(window.V1 || 3.7, (n) => n.toFixed(1));
                 document.getElementById('debug-summary-L').textContent = formatNumber(summaryL, (n) => n.toFixed(1));
                 document.getElementById('debug-summary-Lmin').textContent = formatNumber(summaryLmin, (n) => n.toFixed(1));
                 document.getElementById('debug-summary-Lmax').textContent = formatNumber(summaryLmax, (n) => n.toFixed(1));
@@ -3528,6 +3350,7 @@
                 document.getElementById('debug-CLmin').textContent = formatNumber(CLmin, (n) => n.toFixed(6));
                 document.getElementById('debug-CLmax').textContent = formatNumber(CLmax, (n) => n.toFixed(6));
                 document.getElementById('debug-cell-type').textContent = cellType ? '1 (Tabless)' : '0 (Tabbed)';
+                document.getElementById('debug-cell-type1').textContent = window.CellType1 || 0;
                 document.getElementById('debug-compensate-c').textContent = compensateC ? 'true' : 'false';
                 document.getElementById('debug-E').textContent = formatNumber(E, (n) => n.toFixed(1));
                 document.getElementById('debug-Emin').textContent = formatNumber(Emin, (n) => n.toFixed(1));
@@ -3654,6 +3477,50 @@
             });
         }
         
+        // 初始化V1和CellType1按钮
+        function initV1AndCellType1Buttons() {
+            // 初始化V1参数
+            window.V1 = 3.7;
+            // 初始化CellType1参数
+            window.CellType1 = 0;
+            
+            // 初始化V1按钮
+            const v1Button = document.getElementById('v1-button');
+            if (v1Button) {
+                v1Button.textContent = window.V1 + 'V';
+                v1Button.addEventListener('click', function() {
+                    window.V1 = window.V1 === 3.7 ? 3.6 : 3.7;
+                    v1Button.textContent = window.V1 + 'V';
+                    updateReportCard();
+                });
+            }
+            
+            // 初始化CellType1按钮
+            const cellType1Button = document.getElementById('cell-type1-button');
+            if (cellType1Button) {
+                function updateCellType1Button() {
+                    switch (window.CellType1) {
+                        case 0:
+                            cellType1Button.textContent = 'Tabbed Cells';
+                            break;
+                        case 1:
+                            cellType1Button.textContent = 'Tabless Cells';
+                            break;
+                        case 2:
+                            cellType1Button.textContent = 'No Comp';
+                            break;
+                    }
+                }
+                
+                updateCellType1Button();
+                cellType1Button.addEventListener('click', function() {
+                    window.CellType1 = (window.CellType1 + 1) % 3;
+                    updateCellType1Button();
+                    updateReportCard();
+                });
+            }
+        }
+        
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             generateTimestamp();
@@ -3661,7 +3528,7 @@
             setupButtonListeners();
             initCardGroupLOAD();
             initCardFunctions();
-            initSettingsFunctions();
+            // initSettingsFunctions(); // 函数已删除
             initDebugWindowDrag();
             initFooterLongPress();
             initDfXDebugWindowDrag();
@@ -3669,6 +3536,7 @@
             initCalcButtonLongPress();
             initDfXButtonLongPress();
             initReportCardListeners();
+            initV1AndCellType1Buttons();
             
             // 添加初始的LOAD子卡片
             if (cardGroupLOAD) {
