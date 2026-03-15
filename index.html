@@ -975,7 +975,7 @@
     <div class="app-container">
         <!-- 标题区 -->
         <div class="header">
-            Battery Run Time Calculator <span id="version">v15.5</span>
+            Battery Run Time Calculator <span id="version">V1.15.9</span>
         </div>
         
         <!-- 按键区 -->
@@ -1221,6 +1221,20 @@
         <!-- DfX子屏幕 -->
         <div class="subscreen-area DfX" style="display: none;">
             <div class="card-container">
+                <!-- 电压和电池类型按钮 -->
+                <div class="button-container" style="width: 100%; display: flex; align-items: center; margin-top: 8px; margin-bottom: 12px;">
+                    <div style="width: 80px; text-align: right; font-size: 14px; color: #333;">V</div>
+                    <div style="width: 70px; margin-left: 5px;">
+                        <button id="voltage-button" style="width: 100%; padding: 4px; font-size: 14px; background-color: #FFF9C4; border: 1px solid #FFD54F; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; text-align: center;">3.7V</button>
+                    </div>
+                    <div style="width: 50px; margin-left: 5px; text-align: right; font-size: 14px; color: #333;">Type</div>
+                    <div style="width: 120px; margin-left: 5px;">
+                        <button id="cell-type-button" style="width: 100%; padding: 4px; font-size: 14px; background-color: #FFF9C4; border: 1px solid #FFD54F; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; text-align: center; white-space: nowrap;">Tabbed Cells</button>
+                    </div>
+                    <div style="width: 50px; margin-left: 5px; text-align: left;">
+                        <span style="font-size: 12px; color: #666;"></span>
+                    </div>
+                </div>
                 <!-- DfX显示卡片 -->
                 <div class="card" style="background-color: #E3F2FD; margin: 10px; padding: 10px; flex-direction: column; align-items: flex-start; min-height: auto;">
                     <div class="card-content">
@@ -1295,27 +1309,6 @@
                             </div>
                             <div style="width: 50px; margin-left: 5px; text-align: left;">
                                 <span id="Lcorrected-unit" style="font-size: 12px; color: #666;">W</span>
-                            </div>
-                        </div>
-                        
-                        <!-- 空白行1 -->
-                        <div style="height: 27px; margin-bottom: 8px;"></div>
-                        
-                        <!-- 空白行2 -->
-                        <div style="height: 27px; margin-bottom: 8px;"></div>
-                        
-                        <!-- V行 -->
-                        <div style="width: 100%; display: flex; align-items: center; margin-bottom: 8px;">
-                            <div style="width: 80px; text-align: right; font-size: 14px; color: #333;">V</div>
-                            <div style="width: 70px; margin-left: 5px;">
-                                <button id="voltage-button" style="width: 100%; padding: 4px; font-size: 14px; background-color: #FFF9C4; border: 1px solid #FFD54F; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; text-align: center;">3.7V</button>
-                            </div>
-                            <div style="width: 50px; margin-left: 5px; text-align: right; font-size: 14px; color: #333;">Type</div>
-                            <div style="width: 120px; margin-left: 5px;">
-                                <button id="cell-type-button" style="width: 100%; padding: 4px; font-size: 14px; background-color: #FFF9C4; border: 1px solid #FFD54F; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; text-align: center; white-space: nowrap;">Tabbed Cells</button>
-                            </div>
-                            <div style="width: 50px; margin-left: 5px; text-align: left;">
-                                <span style="font-size: 12px; color: #666;"></span>
                             </div>
                         </div>
                         
